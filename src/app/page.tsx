@@ -1,103 +1,214 @@
 import Image from "next/image";
+import Link from "next/link"; // Import the Link component
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main>
+      {/* Header */}
+      <header className="header">
+        <nav className="nav container">
+          <div className="logo">
+            <Link href="/">
+              <Image
+                src="/images/barb_cut_icon.png" // Assumes image is in public/images
+                alt="Barbera Logo"
+                width={50} // Specify width
+                height={50} // Specify height
+                style={{ cursor: "pointer" }}
+              />
+            </Link>
+          </div>
+          <ul className="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#about">About</a></li>
+          </ul>
+          <div className="auth-buttons">
+            <Link href="/signin" className="btn btn-outline">Sign In</Link>
+            <Link href="/signup" className="btn btn-primary">Get Started</Link>
+          </div>
+        </nav>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="container">
+          <div className="hero-content">
+            <h1>Where Style Meets Skill</h1>
+            <p>
+              Discover talented barbers, showcase stunning transformations, and book
+              your perfect cut. The premier platform connecting barbers and
+              clients through the art of great haircuts.
+            </p>
+            <div className="hero-buttons">
+              <Link href="/discover" className="btn btn-primary btn-large">Find Your Barber</Link>
+              <Link href="/signup-barber" className="btn btn-secondary btn-large">Join as Barber</Link>
+            </div>
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/images/undraw_barber_utly.svg" // Assumes image is in public/images
+              alt="Illustration of a barber"
+              width={500} // Specify width
+              height={400} // Specify height
+              className="hero-image" // Add a class for styling if needed
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </section>
+
+      {/* Features Section */}
+      <section className="features" id="features">
+        <div className="container">
+          <div className="section-header">
+            <h2>Everything You Need</h2>
+            <p>A complete platform designed specifically for the barbering community</p>
+          </div>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">📸</div>
+              <h3>Visual Portfolios</h3>
+              <p>
+                Showcase your best work with stunning before-and-after galleries
+                that let your skills speak for themselves.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🔍</div>
+              <h3>Smart Discovery</h3>
+              <p>
+                Find the perfect barber based on location, specialty, style
+                preferences, and verified client reviews.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📅</div>
+              <h3>Seamless Booking</h3>
+              <p>
+                Book appointments instantly with real-time availability and
+                automated reminders for both parties.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">💬</div>
+              <h3>Direct Communication</h3>
+              <p>
+                Connect directly with barbers for consultations, style
+                discussions, and follow-up care advice.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">⭐</div>
+              <h3>Trust & Reviews</h3>
+              <p>
+                Build trust through authentic reviews and ratings from real clients
+                who{'\''}ve experienced your work.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📊</div>
+              <h3>Business Insights</h3>
+              <p>
+                Track your performance with analytics on bookings, client
+                engagement, and portfolio views.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="how-it-works" id="how-it-works">
+        <div className="container">
+          <div className="section-header">
+            <h2>How It Works</h2>
+            <p>Getting started is simple for both barbers and clients</p>
+          </div>
+          <div className="steps">
+            <div className="step">
+              <div className="step-number">1</div>
+              <h3>Create Your Profile</h3>
+              <p>
+                Sign up and set up your professional profile with your specialties,
+                location, and services.
+              </p>
+            </div>
+            <div className="step">
+              <div className="step-number">2</div>
+              <h3>Showcase Your Work</h3>
+              <p>
+                Upload your best before-and-after photos to build a portfolio that
+                attracts clients.
+              </p>
+            </div>
+            <div className="step">
+              <div className="step-number">3</div>
+              <h3>Connect & Book</h3>
+              <p>
+                Clients discover your work, connect with you, and book appointments
+                seamlessly.
+              </p>
+            </div>
+            <div className="step">
+              <div className="step-number">4</div>
+              <h3>Grow Your Business</h3>
+              <p>
+                Build your reputation, gain repeat clients, and expand your
+                barbering business.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="cta">
+        <div className="container">
+          <h2>Ready to Transform Your Barbering Experience?</h2>
+          <p>
+            Join thousands of barbers and clients who{'\''}ve already discovered the
+            Barbera difference.
+          </p>
+          <Link href="/signup" className="btn btn-white btn-large">Get Started Today</Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-content">
+            <div className="footer-section">
+              <h3>Barbera</h3>
+              <p>
+                Connecting barbers and clients through the art of great haircuts.
+              </p>
+            </div>
+            <div className="footer-section">
+              <h3>For Barbers</h3>
+              <Link href="/signup-barber">Create Profile</Link>
+              <Link href="/pricing">Pricing</Link>
+              <Link href="/success">Success Stories</Link>
+              <Link href="/resources">Resources</Link>
+            </div>
+            <div className="footer-section">
+              <h3>For Clients</h3>
+              <Link href="/discover">Find Barbers</Link>
+              <Link href="/book">Book Appointment</Link>
+              <Link href="#how-it-works">How It Works</Link>
+              <Link href="/reviews">Reviews</Link>
+            </div>
+            <div className="footer-section">
+              <h3>Support</h3>
+              <Link href="/help">Help Center</Link>
+              <Link href="/contact">Contact Us</Link>
+              <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms of Service</Link>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>© 2025 Barbera. All rights reserved.</p>
+          </div>
+        </div>
       </footer>
-    </div>
+    </main>
   );
 }
