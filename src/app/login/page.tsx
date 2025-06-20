@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -90,9 +91,11 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center" style={{ marginBottom: '60px' }}>
           <Link href="/" className="inline-block" style={{ marginBottom: '30px' }}>
-            <img
+            <Image
               src="/images/barb_cut_icon.png"
               alt="Barbera Logo"
+              width={96}
+              height={96}
               className="h-24 w-24 mx-auto"
             />
           </Link>

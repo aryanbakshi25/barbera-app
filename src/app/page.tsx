@@ -3,32 +3,49 @@ import Image from "next/image";
 import Link from "next/link"; // Import the Link component
 import { useEffect, useState } from "react";
 import { createBrowserClient } from '@supabase/ssr';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setIsLoggedIn(true);
-        // Fetch profile picture
         const { data: profile } = await supabase
           .from('profiles')
-          .select('profile_picture')
+          .select('username, profile_picture')
           .eq('id', user.id)
           .single();
-        setProfilePicture(profile?.profile_picture || null);
+        
+        if (profile && profile.username) {
+          setIsLoggedIn(true);
+          setProfilePicture(profile.profile_picture || null);
+        } else {
+          router.push('/complete-profile');
+        }
       } else {
         setIsLoggedIn(false);
         setProfilePicture(null);
       }
+    };
+    checkUser();
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, _session) => {
+      checkUser();
     });
-  }, []);
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router]);
 
   return (
     <main>

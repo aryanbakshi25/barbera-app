@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import { toast } from "react-hot-toast";
+import Image from 'next/image';
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (
@@ -26,10 +26,8 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState('customer');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   // Initialize Supabase client for browser
   const supabase = createBrowserClient(
@@ -56,10 +54,9 @@ export default function SignUpPage() {
       if (error) {
         setError(error.message);
       } else {
-        toast.success('Check your email to confirm your account, then sign in.');
+        toast.success('Check your email to confirm your account.');
         setEmail('');
         setPassword('');
-        setRole('customer');
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');
@@ -80,9 +77,11 @@ export default function SignUpPage() {
         {/* Header */}
         <div className="text-center" style={{ marginBottom: '60px' }}>
           <Link href="/" className="inline-block" style={{ marginBottom: '30px' }}>
-            <img
+            <Image
               src="/images/barb_cut_icon.png"
               alt="Barbera Logo"
+              width={96}
+              height={96}
               className="h-24 w-24 mx-auto"
             />
           </Link>

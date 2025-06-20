@@ -61,6 +61,11 @@ export default function AccountPage() {
     fetchUserAndProfile();
   }, [router]);
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -208,17 +213,7 @@ export default function AccountPage() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M6.75 12a.75.75 0 01.75-.75h9a.75.75 0 01.75.75v6a2.25 2.25 0 01-2.25 2.25h-6A2.25 2.25 0 016 18v-6z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 15.75a3 3 0 100-6 3 3 0 000 6z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16.5 9.75V7.5A2.25 2.25 0 0014.25 5.25h-4.5A2.25 2.25 0 007.5 7.5v2.25"
+                    d="M12 4.5v15m7.5-7.5h-15"
                   />
                 </svg>
               </button>
@@ -318,6 +313,14 @@ export default function AccountPage() {
             {saving ? "Saving..." : "Save Changes"}
           </button>
         </form>
+        <div className="text-center border-t border-gray-700" style={{ paddingTop: '30px' }}>
+            <button
+                onClick={handleSignOut}
+                className="text-gray-400 hover:text-red-400 font-medium transition-colors"
+            >
+                Sign Out
+            </button>
+        </div>
       </div>
     </div>
   );

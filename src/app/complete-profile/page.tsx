@@ -1,33 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import { toast } from "react-hot-toast";
-
-function EyeIcon({ visible }: { visible: boolean }) {
-  return visible ? (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-    </svg>
-  ) : (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 002.25 12s3.75 7.5 9.75 7.5c2.042 0 3.82-.393 5.282-1.023M6.228 6.228A10.45 10.45 0 0112 4.5c6 0 9.75 7.5 9.75 7.5a10.46 10.46 0 01-4.293 4.747M6.228 6.228L3 3m0 0l18 18" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-    </svg>
-  );
-}
+import Image from 'next/image';
 
 export default function CompleteProfilePage() {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState('customer');
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  console.log(router); // Satisfy linter
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,28 +37,31 @@ export default function CompleteProfilePage() {
     // Try to fetch the profile
     let { data, error } = await supabase
       .from('profiles')
-      .select('username, role')
+      .select('username, role, profile_picture')
       .eq('id', user.id)
       .single();
     if (error) {
       // Try to insert a new profile row (ignore duplicate errors)
       await supabase
         .from('profiles')
-        .insert([{ id: user.id, username: '', role: 'customer' }], { upsert: true });
+        .upsert({ id: user.id, username: '', role: 'customer' });
       // Try to fetch again
       ({ data, error } = await supabase
         .from('profiles')
-        .select('username, role')
+        .select('username, role, profile_picture')
         .eq('id', user.id)
         .single());
-      if (error) {
+      if (error || !data) {
         setError('Could not fetch or create profile. Please try again later.');
         setLoading(false);
         return;
       }
     }
-    setUsername(data.username || '');
-    setRole(data.role || 'customer');
+    if (data) {
+      setUsername(data.username || '');
+      setRole(data.role || 'customer');
+      setProfilePicture(data.profile_picture || null);
+    }
     setLoading(false);
   }
 
@@ -75,6 +69,52 @@ export default function CompleteProfilePage() {
     fetchOrCreateProfile();
     // eslint-disable-next-line
   }, []);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Upload to Supabase Storage
+    const fileExt = file.name.split('.').pop();
+    let filePath = `${user.id}.${fileExt}`;
+    
+    // Remove all possible previous files for this user
+    const possibleExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    const removePaths = possibleExts.map(ext => `${user.id}.${ext}`);
+    await supabase.storage.from('avatars').remove(removePaths);
+    
+    let uploadResult = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file);
+
+    if (uploadResult.error) {
+      if (
+        uploadResult.error.message === 'The resource already exists' ||
+        uploadResult.error.message === 'Duplicate'
+      ) {
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        filePath = `${user.id}-${randomSuffix}.${fileExt}`;
+        uploadResult = await supabase.storage
+          .from("avatars")
+          .upload(filePath, file);
+        if (uploadResult.error) {
+          toast.error(`Failed to upload image (retry): ${uploadResult.error.message}`);
+          return;
+        }
+      } else {
+        toast.error(`Failed to upload image: ${uploadResult.error.message}`);
+        return;
+      }
+    }
+    
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    setProfilePicture(data.publicUrl || null);
+    toast.success("Profile picture updated!");
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,16 +129,16 @@ export default function CompleteProfilePage() {
     }
     const { error } = await supabase
       .from('profiles')
-      .update({ username, role })
+      .update({ username, role, profile_picture: profilePicture })
       .eq('id', user.id);
     if (error) {
       setError('Failed to update profile.');
     } else {
       setSuccess(true);
       toast.success('Profile updated!');
-      // Fetch the updated profile to reflect changes
-      await fetchOrCreateProfile();
-      setTimeout(() => setSuccess(false), 2000);
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
     }
     setSaving(false);
   };
@@ -108,9 +148,11 @@ export default function CompleteProfilePage() {
       <div className="max-w-md w-full" style={{ padding: '40px 0' }}>
         <div className="text-center" style={{ marginBottom: '60px' }}>
           <Link href="/" className="inline-block" style={{ marginBottom: '30px' }}>
-            <img
+            <Image
               src="/images/barb_cut_icon.png"
               alt="Barbera Logo"
+              width={96}
+              height={96}
               className="h-24 w-24 mx-auto"
             />
           </Link>
@@ -131,6 +173,35 @@ export default function CompleteProfilePage() {
                 <p className="text-green-400 font-medium">Profile updated!</p>
               </div>
             )}
+            <div className="flex flex-col items-center mb-8">
+                <div className="relative w-28 h-28 mb-3">
+                    <Image
+                        src={profilePicture || "/images/default-avatar.png"}
+                        alt="Profile Picture"
+                        width={112}
+                        height={112}
+                        className="rounded-full object-cover aspect-square border-2 border-gray-700"
+                        style={{ width: 112, height: 112 }}
+                    />
+                    <button
+                        type="button"
+                        className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 shadow hover:bg-blue-700 focus:outline-none cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                        title="Change profile picture"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </button>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={handleFileChange}
+                    />
+                </div>
+            </div>
             <div style={{ marginBottom: '25px' }}>
               <label htmlFor="username" className="block text-base font-medium text-gray-300" style={{ marginBottom: '10px' }}>
                 Username
@@ -198,7 +269,7 @@ export default function CompleteProfilePage() {
             <button
               type="submit"
               disabled={saving || !username}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-5 px-6 rounded-xl transition-colors duration-200 text-lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-5 px-6 rounded-xl transition-colors duration-200 text-lg cursor-pointer"
               style={{lineHeight: 2.5 }}
             >
               {saving ? 'Saving...' : 'Save Profile'}
