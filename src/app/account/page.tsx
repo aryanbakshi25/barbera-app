@@ -1,0 +1,324 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";
+import { toast } from "react-hot-toast";
+import Image from "next/image";
+import Link from "next/link";
+
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+interface SupabaseUser {
+  id: string;
+  email: string;
+  // Add more fields if needed
+}
+
+export default function AccountPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState("customer");
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function fetchUserAndProfile() {
+      setLoading(true);
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) {
+        router.replace("/login");
+        return;
+      }
+      setUser({ id: user.id, email: user.email ?? "" });
+      setEmail(user.email ?? "");
+      // Fetch profile
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("username, role, profile_picture")
+        .eq("id", user.id)
+        .single();
+      if (profileError) {
+        setError("Could not fetch profile.");
+      } else {
+        setUsername(profile.username || "");
+        setRole(profile.role || "customer");
+        setProfilePicture(profile.profile_picture || null);
+      }
+      setLoading(false);
+    }
+    fetchUserAndProfile();
+  }, [router]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ username, role, profile_picture: profilePicture })
+      .eq("id", user.id);
+    if (error) {
+      setError("Failed to update profile.");
+    } else {
+      toast.success("Profile updated!");
+      // Redirect to main page after a short delay so the toast is visible
+      setTimeout(() => {
+        router.push("/");
+      }, 800);
+    }
+    setSaving(false);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !user) return;
+    const file = e.target.files[0];
+    if (!file) return;
+    // Upload to Supabase Storage
+    const fileExt = file.name.split(".").pop();
+    let filePath = `${user.id}.${fileExt}`;
+    // Remove all possible previous files for this user
+    const possibleExts = ["jpg", "jpeg", "png", "webp", "gif"];
+    const removePaths = possibleExts.map((ext) => `${user.id}.${ext}`);
+    await supabase.storage.from("avatars").remove(removePaths);
+
+    let uploadResult = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file);
+
+    if (uploadResult.error) {
+      // Only warn for the first (expected) error
+      console.warn(
+        "Supabase upload warning (first attempt):",
+        uploadResult.error
+      );
+      if (
+        uploadResult.error.message === "The resource already exists" ||
+        uploadResult.error.message === "Duplicate"
+      ) {
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        filePath = `${user.id}-${randomSuffix}.${fileExt}`;
+        console.log("Retrying upload with new path:", filePath);
+        uploadResult = await supabase.storage
+          .from("avatars")
+          .upload(filePath, file);
+        if (uploadResult.error) {
+          // Only log as error if the retry fails
+          console.error("Supabase upload error (retry):", uploadResult.error);
+          toast.error(
+            `Failed to upload image (retry): ${uploadResult.error.message}`
+          );
+          return;
+        }
+      } else {
+        console.error("Supabase upload error:", uploadResult.error);
+        toast.error(`Failed to upload image: ${uploadResult.error.message}`);
+        return;
+      }
+    }
+    // Get public URL
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    setProfilePicture(data.publicUrl || null);
+    toast.success("Profile picture updated!");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-300 text-xl">
+        Loading...
+      </div>
+    );
+  }
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4 py-8">
+      <div className="max-w-md w-full" style={{ padding: "40px 0" }}>
+        {/* Header */}
+        <div className="text-center" style={{ marginBottom: "60px" }}>
+          <Link
+            href="/"
+            className="inline-block"
+            style={{ marginBottom: "30px" }}
+          >
+            <Image
+              src="/images/barb_cut_icon.png"
+              alt="Barbera Logo"
+              width={96}
+              height={96}
+              className="h-24 w-24 mx-auto"
+            />
+          </Link>
+          <h2
+            className="text-5xl font-bold text-white"
+            style={{ marginBottom: "12px" }}
+          >
+            Account
+          </h2>
+          <p className="text-gray-400 text-xl">View and update your profile</p>
+        </div>
+        {error && (
+          <div
+            className="bg-red-500/10 border border-red-500/20 rounded-xl p-8 pt-12 mb-10"
+            style={{
+              paddingLeft: "1rem",
+              fontSize: "1rem",
+              marginBottom: "1.5rem",
+              lineHeight: "3",
+            }}
+          >
+            <p className="text-red-400 font-medium">{error}</p>
+          </div>
+        )}
+        <form onSubmit={handleSave} style={{ marginBottom: "60px" }}>
+          <div className="flex flex-col items-center mb-8">
+            <div className="relative w-28 h-28 mb-3">
+              <Image
+                src={profilePicture || "/images/default-avatar.png"}
+                alt="Profile Picture"
+                width={112}
+                height={112}
+                className="rounded-full object-cover aspect-square border-2 border-gray-700"
+                style={{ width: 112, height: 112 }}
+              />
+              <button
+                type="button"
+                className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 shadow hover:bg-blue-700 focus:outline-none cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+                title="Change profile picture"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.75 12a.75.75 0 01.75-.75h9a.75.75 0 01.75.75v6a2.25 2.25 0 01-2.25 2.25h-6A2.25 2.25 0 016 18v-6z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 15.75a3 3 0 100-6 3 3 0 000 6z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 9.75V7.5A2.25 2.25 0 0014.25 5.25h-4.5A2.25 2.25 0 007.5 7.5v2.25"
+                  />
+                </svg>
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </div>
+            <span className="text-gray-400 text-sm">{email}</span>
+          </div>
+          <div style={{ marginBottom: "25px" }}>
+            <label
+              htmlFor="username"
+              className="block text-base font-medium text-gray-300"
+              style={{ marginBottom: "10px" }}
+            >
+              Username
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
+              placeholder="Enter your username"
+              style={{ paddingLeft: "1rem", lineHeight: "2.5" }}
+              disabled={saving}
+            />
+          </div>
+          <div style={{ marginBottom: "50px" }}>
+            <label
+              className="block text-base font-medium text-gray-300"
+              style={{ marginBottom: "16px" }}
+            >
+              Role
+            </label>
+            <div>
+              <label
+                className="flex items-center cursor-pointer"
+                style={{ marginBottom: "16px" }}
+              >
+                <input
+                  type="radio"
+                  name="role"
+                  value="customer"
+                  checked={role === "customer"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-5 h-5 text-blue-600 bg-gray-800 border-gray-600 focus:ring-blue-500"
+                  style={{ marginRight: "16px" }}
+                  disabled={saving}
+                />
+                <span className="text-gray-300 text-base">Customer</span>
+              </label>
+              <label
+                className="flex items-center cursor-pointer"
+                style={{ marginBottom: "16px" }}
+              >
+                <input
+                  type="radio"
+                  name="role"
+                  value="barber"
+                  checked={role === "barber"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-5 h-5 text-blue-600 bg-gray-800 border-gray-600 focus:ring-blue-500"
+                  style={{ marginRight: "16px" }}
+                  disabled={saving}
+                />
+                <span className="text-gray-300 text-base">Barber</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="both"
+                  checked={role === "both"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-5 h-5 text-blue-600 bg-gray-800 border-gray-600 focus:ring-blue-500"
+                  style={{ marginRight: "16px" }}
+                  disabled={saving}
+                />
+                <span className="text-gray-300 text-base">Both</span>
+              </label>
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={saving || !username}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-5 px-6 rounded-xl transition-colors duration-200 text-lg mb-2 cursor-pointer"
+            style={{ lineHeight: 2.5 }}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,35 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link"; // Import the Link component
+import { useEffect, useState } from "react";
+import { createBrowserClient } from '@supabase/ssr';
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (user) {
+        setIsLoggedIn(true);
+        // Fetch profile picture
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('profile_picture')
+          .eq('id', user.id)
+          .single();
+        setProfilePicture(profile?.profile_picture || null);
+      } else {
+        setIsLoggedIn(false);
+        setProfilePicture(null);
+      }
+    });
+  }, []);
+
   return (
     <main>
       {/* Header */}
@@ -25,8 +53,23 @@ export default function Home() {
             <li><a href="#about">About</a></li>
           </ul>
           <div className="auth-buttons">
-            <Link href="/signin" className="btn btn-outline">Sign In</Link>
-            <Link href="/signup" className="btn btn-primary">Get Started</Link>
+            {isLoggedIn ? (
+              <Link href="/account" className="flex items-center">
+                <Image
+                  src={profilePicture || "/images/default-avatar.png"}
+                  alt="Profile"
+                  width={40}
+                  height={40}
+                  className="rounded-full border border-gray-700 object-cover aspect-square"
+                  style={{ background: '#eee' }}
+                />
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="btn btn-outline">Sign In</Link>
+                <Link href="/signup" className="btn btn-primary">Get Started</Link>
+              </>
+            )}
           </div>
         </nav>
       </header>
@@ -37,7 +80,7 @@ export default function Home() {
           <div className="hero-content">
             <h1>Where Style Meets Skill</h1>
             <p>
-              Discover talented barbers, showcase stunning transformations, and book
+              With Barbera, discover talented barbers, showcase stunning transformations, and book
               your perfect cut. The premier platform connecting barbers and
               clients through the art of great haircuts.
             </p>
@@ -184,7 +227,7 @@ export default function Home() {
             </div>
             <div className="footer-section">
               <h3>For Barbers</h3>
-              <Link href="/signup-barber">Create Profile</Link>
+              <Link href="/signup">Create Profile</Link>
               <Link href="/pricing">Pricing</Link>
               <Link href="/success">Success Stories</Link>
               <Link href="/resources">Resources</Link>
