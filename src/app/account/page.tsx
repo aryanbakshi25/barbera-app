@@ -6,6 +6,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 import Link from "next/link";
+import ServicesManager from "@/components/ServicesManager";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +19,15 @@ interface SupabaseUser {
   // Add more fields if needed
 }
 
+interface Service {
+  id: string;
+  user_id: string;
+  name: string;
+  price: number;
+  duration_minutes: number;
+  created_at?: string;
+}
+
 export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -27,6 +37,7 @@ export default function AccountPage() {
   const [role, setRole] = useState("customer");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,6 +66,19 @@ export default function AccountPage() {
         setUsername(profile.username || "");
         setRole(profile.role || "customer");
         setProfilePicture(profile.profile_picture || null);
+        
+        // If user is a barber, fetch their services
+        if (profile.role === 'barber') {
+          const { data: servicesData, error: servicesError } = await supabase
+            .from('services')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+          
+          if (!servicesError && servicesData) {
+            setServices(servicesData);
+          }
+        }
       }
       setLoading(false);
     }
@@ -71,6 +95,35 @@ export default function AccountPage() {
     setSaving(true);
     setError(null);
     if (!user) return;
+
+    // Validate username
+    if (username.trim().length < 3) {
+        setError('Username must be at least 3 characters long.');
+        setSaving(false);
+        return;
+    }
+
+    // Securely check if username is taken using the database function
+    const { data: isTaken, error: rpcError } = await supabase.rpc(
+      'is_username_taken',
+      {
+        username_to_check: username,
+        user_id_to_exclude: user.id,
+      }
+    );
+
+    if (rpcError) {
+      setError('Error checking username. Please try again.');
+      setSaving(false);
+      return;
+    }
+
+    if (isTaken) {
+      setError('This username is already taken. Please choose another.');
+      setSaving(false);
+      return;
+    }
+    
     const { error } = await supabase
       .from("profiles")
       .update({ username, role, profile_picture: profilePicture })
@@ -147,8 +200,8 @@ export default function AccountPage() {
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4 py-8">
-      <div className="max-w-md w-full" style={{ padding: "40px 0" }}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4 md:px-8 lg:px-12 py-8">
+      <div className={`${role === 'barber' ? 'max-w-md md:max-w-4xl lg:max-w-5xl' : 'max-w-md'} mx-auto`} style={{ padding: "40px 0" }}>
         {/* Header */}
         <div className="text-center" style={{ marginBottom: "60px" }}>
           <Link
@@ -189,7 +242,7 @@ export default function AccountPage() {
           <div className="flex flex-col items-center mb-8">
             <div className="relative w-28 h-28 mb-3">
               <Image
-                src={profilePicture || "/images/default-avatar.png"}
+                src={profilePicture || "/images/default_pfp.png"}
                 alt="Profile Picture"
                 width={112}
                 height={112}
@@ -273,10 +326,7 @@ export default function AccountPage() {
                 />
                 <span className="text-gray-300 text-base">Customer</span>
               </label>
-              <label
-                className="flex items-center cursor-pointer"
-                style={{ marginBottom: "16px" }}
-              >
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
                   name="role"
@@ -289,31 +339,28 @@ export default function AccountPage() {
                 />
                 <span className="text-gray-300 text-base">Barber</span>
               </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="role"
-                  value="both"
-                  checked={role === "both"}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-5 h-5 text-blue-600 bg-gray-800 border-gray-600 focus:ring-blue-500"
-                  style={{ marginRight: "16px" }}
-                  disabled={saving}
-                />
-                <span className="text-gray-300 text-base">Both</span>
-              </label>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={saving || !username}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-5 px-6 rounded-xl transition-colors duration-200 text-lg mb-2 cursor-pointer"
-            style={{ lineHeight: 2.5 }}
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
         </form>
-        <div className="text-center border-t border-gray-700" style={{ paddingTop: '30px' }}>
+        
+        {/* Services Management for Barbers */}
+        {role === 'barber' && user && (
+          <div className="mt-8">
+            <ServicesManager user={user} initialServices={services} />
+          </div>
+        )}
+        
+        {/* Save Changes Button */}
+        <button
+          onClick={handleSave}
+          disabled={saving || username.trim().length < 3}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-5 px-6 rounded-xl transition-colors duration-200 text-lg cursor-pointer"
+          style={{ lineHeight: 2.5, marginBottom: '35px'}}
+        >
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
+        
+        <div className="text-center border-t border-gray-700 mt-12" style={{ paddingTop: '30px' }}>
             <button
                 onClick={handleSignOut}
                 className="text-gray-400 hover:text-red-400 font-medium transition-colors"

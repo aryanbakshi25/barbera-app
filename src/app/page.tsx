@@ -73,7 +73,7 @@ export default function Home() {
             {isLoggedIn ? (
               <Link href="/account" className="flex items-center">
                 <Image
-                  src={profilePicture || "/images/default-avatar.png"}
+                  src={profilePicture || "/images/default_pfp.png"}
                   alt="Profile"
                   width={40}
                   height={40}

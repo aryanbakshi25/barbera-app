@@ -127,6 +127,35 @@ export default function CompleteProfilePage() {
       setSaving(false);
       return;
     }
+
+    // Validate username isn't just whitespace
+    if (username.trim().length < 3) {
+      setError('Username must be at least 3 characters long.');
+      setSaving(false);
+      return;
+    }
+
+    // Securely check if username is taken using the database function
+    const { data: isTaken, error: rpcError } = await supabase.rpc(
+      'is_username_taken',
+      {
+        username_to_check: username,
+        user_id_to_exclude: user.id,
+      }
+    );
+
+    if (rpcError) {
+      setError('Error checking username. Please try again.');
+      setSaving(false);
+      return;
+    }
+
+    if (isTaken) {
+      setError('This username is already taken. Please choose another.');
+      setSaving(false);
+      return;
+    }
+
     const { error } = await supabase
       .from('profiles')
       .update({ username, role, profile_picture: profilePicture })
@@ -176,7 +205,7 @@ export default function CompleteProfilePage() {
             <div className="flex flex-col items-center mb-8">
                 <div className="relative w-28 h-28 mb-3">
                     <Image
-                        src={profilePicture || "/images/default-avatar.png"}
+                        src={profilePicture || "/images/default_pfp.png"}
                         alt="Profile Picture"
                         width={112}
                         height={112}
@@ -238,7 +267,7 @@ export default function CompleteProfilePage() {
                   />
                   <span className="text-gray-300 text-base">Customer (looking for barbers)</span>
                 </label>
-                <label className="flex items-center cursor-pointer" style={{ marginBottom: '16px' }}>
+                <label className="flex items-center cursor-pointer">
                   <input
                     type="radio"
                     name="role"
@@ -251,24 +280,11 @@ export default function CompleteProfilePage() {
                   />
                   <span className="text-gray-300 text-base">Barber (providing services)</span>
                 </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="role"
-                    value="both"
-                    checked={role === 'both'}
-                    onChange={(e) => setRole(e.target.value)}
-                    className="w-5 h-5 text-blue-600 bg-gray-800 border-gray-600 focus:ring-blue-500"
-                    style={{ marginRight: '16px' }}
-                    disabled={saving}
-                  />
-                  <span className="text-gray-300 text-base">Both (customer and barber)</span>
-                </label>
               </div>
             </div>
             <button
               type="submit"
-              disabled={saving || !username}
+              disabled={saving || username.trim().length < 3}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-5 px-6 rounded-xl transition-colors duration-200 text-lg cursor-pointer"
               style={{lineHeight: 2.5 }}
             >
