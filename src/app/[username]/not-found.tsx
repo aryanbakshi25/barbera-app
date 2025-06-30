@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function NotFound() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #232526 0%, #414345 100%)', color: '#fff' }}>
@@ -5,7 +7,7 @@ export default function NotFound() {
         <p style={{ fontSize: '1.5rem', marginBottom: '2rem' }}>
           Sorry, this profile does not exist.
         </p>
-        <a href="/" style={{ color: '#4A90E2', textDecoration: 'underline', fontSize: '1.1rem' }}>Go back home</a>
+        <Link href="/" style={{ color: '#4A90E2', textDecoration: 'underline', fontSize: '1.1rem' }}>Go back home</Link>
       </div>
     )
   }

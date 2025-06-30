@@ -3,6 +3,10 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import BookButton from './BookButton';
+import ClientServicesListWrapper from '@/components/ClientServicesListWrapper';
+import EditProfileButton from '@/components/EditProfileButton';
+import PortfolioUploadWrapper from '@/components/PortfolioUploadWrapper';
+import PortfolioGrid from '@/components/PortfolioGrid';
 
 // TypeScript interfaces for data
 interface Service {
@@ -15,7 +19,8 @@ interface Service {
 
 interface Post {
   id: string;
-  image_url: string;
+  image_url?: string; // For backward compatibility
+  images?: string[] | Array<{ url: string; alt?: string; caption?: string }>; // JSONB support
   caption?: string;
 }
 
@@ -26,35 +31,6 @@ interface Review {
 }
 
 // Placeholder components for clarity and separation of concerns
-function ServicesList({ services }: { services: Service[] }) {
-  if (!services.length) return <p style={{ color: '#bbb' }}>No services listed yet.</p>;
-  return (
-    <ul style={{ listStyle: 'none', padding: 0 }}>
-      {services.map(service => (
-        <li key={service.id} style={{ marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>
-          <div style={{ fontWeight: 600 }}>{service.name}</div>
-          <div style={{ color: '#aaa', fontSize: '0.95rem' }}>{service.description}</div>
-          <div style={{ color: '#4A90E2', fontWeight: 500 }}>${service.price} / {service.duration_minutes} min</div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function PortfolioGrid({ posts }: { posts: Post[] }) {
-  if (!posts.length) return <p style={{ color: '#bbb' }}>No portfolio posts yet.</p>;
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-      {posts.map(post => (
-        <div key={post.id} style={{ width: 180, background: '#222', borderRadius: 8, overflow: 'hidden' }}>
-          <img src={post.image_url} alt={post.caption || 'Portfolio image'} style={{ width: '100%', height: 120, objectFit: 'cover' }} />
-          {post.caption && <div style={{ padding: '0.5rem', color: '#eee', fontSize: '0.95rem' }}>{post.caption}</div>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function ReviewsList({ reviews }: { reviews: Review[] }) {
   if (!reviews.length) return <p style={{ color: '#bbb' }}>No reviews yet.</p>;
   return (
@@ -73,14 +49,15 @@ function ReviewsList({ reviews }: { reviews: Review[] }) {
 
 export const revalidate = 60;
 
-export default async function ProfilePage({ params }: { params: { username: string } }) {
+export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params;
   const supabase = createServerComponentClient({ cookies });
 
   // 1. Fetch the main profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('id, username, role, bio, profile_picture')
-    .eq('username', params.username)
+    .eq('username', username)
     .single();
 
   // 2. If not found, show 404
@@ -96,7 +73,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
     // Fetch posts (portfolio)
     const { data: postsData } = await supabase
       .from('posts')
-      .select('id, image_url, caption')
+      .select('id, image_url, images, caption')
       .eq('user_id', profile.id)
       .order('id', { ascending: false });
     posts = postsData || [];
@@ -126,7 +103,8 @@ export default async function ProfilePage({ params }: { params: { username: stri
         <div style={{ background: '#232526', borderRadius: 16, padding: 32, color: '#fff', maxWidth: 500, width: '100%' }}>
           <h1 style={{ fontSize: '2.2rem', fontWeight: 700, marginBottom: 8 }}>@{profile.username}</h1>
           {profile.bio && <p style={{ color: '#BDBDBD', marginBottom: 24 }}>{profile.bio}</p>}
-          <div style={{ color: '#4A90E2', fontWeight: 600, fontSize: '1.1rem' }}>Community Member</div>
+          <div style={{ color: '#4A90E2', fontWeight: 600, fontSize: '1.1rem', marginBottom: 24 }}>Community Member</div>
+          <EditProfileButton profileId={profile.id} />
         </div>
       </main>
     );
@@ -187,14 +165,18 @@ export default async function ProfilePage({ params }: { params: { username: stri
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: 8 }}>@{profile.username}</h1>
           {profile.bio && <p style={{ color: '#BDBDBD', marginBottom: 24, textAlign: 'center' }}>{profile.bio}</p>}
-          <BookButton />
+          <BookButton profileId={profile.id} />
+          <EditProfileButton profileId={profile.id} />
           <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: 12, marginTop: 32 }}>Services</h2>
-          <ServicesList services={services} />
+          <ClientServicesListWrapper services={services} profileId={profile.id} />
         </aside>
         {/* Right Main Content */}
         <section style={{ flex: 1, padding: '2.5rem 2.5rem 2.5rem 2rem', background: '#232526' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>Portfolio</h2>
-          <PortfolioGrid posts={posts} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Portfolio</h2>
+            <PortfolioUploadWrapper profileId={profile.id} />
+          </div>
+          <PortfolioGrid posts={posts} profileId={profile.id} />
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '2.5rem 0 1rem' }}>Reviews</h2>
           <ReviewsList reviews={reviews} />
         </section>

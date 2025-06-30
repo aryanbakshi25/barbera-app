@@ -1,12 +1,14 @@
-"use client";
-import React, { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+'use client';
 
-interface BookButtonProps {
+import { useEffect, useState } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import PortfolioUpload from './PortfolioUpload';
+
+interface PortfolioUploadWrapperProps {
   profileId: string;
 }
 
-export default function BookButton({ profileId }: BookButtonProps) {
+export default function PortfolioUploadWrapper({ profileId }: PortfolioUploadWrapperProps) {
   const [isOwner, setIsOwner] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,13 +34,9 @@ export default function BookButton({ profileId }: BookButtonProps) {
     checkOwner();
   }, [profileId]);
 
-  if (isLoading || isOwner) {
+  if (isLoading || !isOwner) {
     return null;
   }
 
-  return (
-    <button className="button-64" role="button" style={{marginTop: '16px'}}>
-      <span className="text">Book an Appointment</span>
-    </button>
-  );
+  return <PortfolioUpload profileId={profileId} />;
 } 

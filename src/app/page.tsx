@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,12 +28,14 @@ export default function Home() {
         if (profile && profile.username) {
           setIsLoggedIn(true);
           setProfilePicture(profile.profile_picture || null);
+          setUsername(profile.username);
         } else {
           router.push('/complete-profile');
         }
       } else {
         setIsLoggedIn(false);
         setProfilePicture(null);
+        setUsername(null);
       }
     };
     checkUser();
@@ -71,7 +74,7 @@ export default function Home() {
           </ul>
           <div className="auth-buttons">
             {isLoggedIn ? (
-              <Link href="/account" className="flex items-center">
+              <Link href={`/${username}`} className="flex items-center">
                 <Image
                   src={profilePicture || "/images/default_pfp.png"}
                   alt="Profile"

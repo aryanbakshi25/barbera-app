@@ -42,6 +42,27 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
   });
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  
+  // Validation and notification states
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState<'success' | 'error'>('success');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+
+  // Show notification helper
+  const showNotificationMessage = (message: string, type: 'success' | 'error') => {
+    setNotificationMessage(message);
+    setNotificationType(type);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 5000);
+  };
+
+  // Clear validation errors
+  const clearValidationErrors = () => {
+    setValidationErrors({});
+  };
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -50,30 +71,55 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
       ...prev,
       [name]: value
     }));
+    
+    // Clear validation error for this field when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+    
+    if (!newService.name.trim()) {
+      errors.name = 'Service name is required';
+    }
+    
+    if (!newService.price) {
+      errors.price = 'Price is required';
+    } else {
+      const price = parseFloat(newService.price);
+      if (isNaN(price) || price <= 0) {
+        errors.price = 'Please enter a valid price greater than 0';
+      }
+    }
+    
+    if (!newService.duration_minutes) {
+      errors.duration_minutes = 'Duration is required';
+    } else {
+      const duration = parseInt(newService.duration_minutes);
+      if (isNaN(duration) || duration <= 0) {
+        errors.duration_minutes = 'Please enter a valid duration greater than 0';
+      }
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Add new service
   const handleAddService = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearValidationErrors();
     
     // Validate form inputs
-    if (!newService.name.trim() || !newService.price || !newService.duration_minutes) {
-      alert('Please fill in all fields');
+    if (!validateForm()) {
       return;
     }
 
     const price = parseFloat(newService.price);
     const duration = parseInt(newService.duration_minutes);
-
-    if (isNaN(price) || price <= 0) {
-      alert('Please enter a valid price');
-      return;
-    }
-
-    if (isNaN(duration) || duration <= 0) {
-      alert('Please enter a valid duration');
-      return;
-    }
 
     setIsAdding(true);
 
@@ -107,38 +153,43 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
         description: '',
       });
 
+      showNotificationMessage('Service added successfully!', 'success');
+
     } catch (error) {
       console.error('Error adding service:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       
-      let errorMessage = 'Failed to add service';
+      let errorMessage = 'Failed to add service. Please try again.';
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'object' && error !== null) {
         errorMessage = JSON.stringify(error);
       }
       
-      alert(`Failed to add service: ${errorMessage}`);
+      showNotificationMessage(errorMessage, 'error');
     } finally {
       setIsAdding(false);
     }
   };
 
-  // Delete service
-  const handleDeleteService = async (serviceId: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) {
-      return;
-    }
+  // Handle delete click
+  const handleDeleteClick = (service: Service) => {
+    setServiceToDelete(service);
+    setShowDeleteModal(true);
+  };
 
-    setIsDeleting(serviceId);
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!serviceToDelete) return;
+    
+    setIsDeleting(serviceToDelete.id);
+    setShowDeleteModal(false);
 
     try {
       // Delete service from Supabase
       const { error } = await supabase
         .from('services')
         .delete()
-        .eq('id', serviceId)
+        .eq('id', serviceToDelete.id)
         .eq('user_id', user.id); // Ensure user can only delete their own services
 
       if (error) {
@@ -146,20 +197,47 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
       }
 
       // Remove service from local state
-      setServices(prev => prev.filter(service => service.id !== serviceId));
+      setServices(prev => prev.filter(service => service.id !== serviceToDelete.id));
+      showNotificationMessage('Service deleted successfully!', 'success');
 
     } catch (error) {
       console.error('Error deleting service:', error);
-      alert(`Failed to delete service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showNotificationMessage(`Failed to delete service: ${errorMessage}`, 'error');
     } finally {
       setIsDeleting(null);
+      setServiceToDelete(null);
     }
   };
 
+  // Handle delete cancel
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setServiceToDelete(null);
+  };
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-10" style={{ marginBottom: '60px', padding: '30px'}}>
       <h2 className="text-3xl font-bold text-white mb-8" style={{ marginBottom: '24px' }}>Services Management</h2>
+      
+      {/* Notification Toast */}
+      {showNotification && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: notificationType === 'success' ? '#10B981' : '#EF4444',
+          color: '#fff',
+          padding: '1rem 1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+          zIndex: 1000,
+          maxWidth: '400px',
+          animation: 'slideIn 0.3s ease-out',
+        }}>
+          {notificationMessage}
+        </div>
+      )}
       
       {/* Add New Service Form */}
       <div style={{ marginBottom: '50px' }}>
@@ -176,12 +254,19 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
                 name="name"
                 value={newService.name}
                 onChange={handleInputChange}
-                className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
+                className={`w-full px-6 py-5 bg-gray-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base ${
+                  validationErrors.name ? 'border-red-500' : 'border-gray-700'
+                }`}
                 placeholder="e.g. Haircut, Beard Trim..."
                 disabled={isAdding}
                 style={{paddingLeft: '1rem', lineHeight: '2.5'}}
                 required
               />
+              {validationErrors.name && (
+                <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  {validationErrors.name}
+                </p>
+              )}
             </div>
             
             <div>
@@ -194,7 +279,9 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
                 name="price"
                 value={newService.price}
                 onChange={handleInputChange}
-                className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
+                className={`w-full px-6 py-5 bg-gray-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base ${
+                  validationErrors.price ? 'border-red-500' : 'border-gray-700'
+                }`}
                 placeholder="25.00"
                 step="0.01"
                 min="0"
@@ -202,6 +289,11 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
                 style={{paddingLeft: '1rem', lineHeight: '2.5'}}
                 required
               />
+              {validationErrors.price && (
+                <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  {validationErrors.price}
+                </p>
+              )}
             </div>
             
             <div>
@@ -214,13 +306,20 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
                 name="duration_minutes"
                 value={newService.duration_minutes}
                 onChange={handleInputChange}
-                className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
+                className={`w-full px-6 py-5 bg-gray-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base ${
+                  validationErrors.duration_minutes ? 'border-red-500' : 'border-gray-700'
+                }`}
                 placeholder="30"
                 min="1"
                 disabled={isAdding}
                 style={{paddingLeft: '1rem', lineHeight: '2.5'}}
                 required
               />
+              {validationErrors.duration_minutes && (
+                <p style={{ color: '#EF4444', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  {validationErrors.duration_minutes}
+                </p>
+              )}
             </div>
           </div>
           
@@ -281,7 +380,7 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
                   </div>
                 </div>
                 <button
-                  onClick={() => handleDeleteService(service.id)}
+                  onClick={() => handleDeleteClick(service)}
                   disabled={isDeleting === service.id}
                   className="ml-6 w-11 h-11 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed transition-all duration-200 focus:ring-2 focus:ring-red-400" style={{marginRight: '10px'}}
                   aria-label="Delete"
@@ -305,6 +404,97 @@ export default function ServicesManager({ user, initialServices }: ServicesManag
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && serviceToDelete && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            background: '#232526',
+            borderRadius: 12,
+            padding: '2rem',
+            maxWidth: 400,
+            width: '90%',
+            border: '1px solid #333',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+          }}>
+            <h3 style={{
+              color: '#fff',
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              marginBottom: '1rem',
+            }}>
+              Delete Service
+            </h3>
+            <p style={{
+              color: '#bbb',
+              marginBottom: '1.5rem',
+              lineHeight: 1.5,
+            }}>
+              Are you sure you want to delete <strong style={{ color: '#fff' }}>{serviceToDelete.name}</strong>? 
+              This action cannot be undone.
+            </p>
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'flex-end',
+            }}>
+              <button
+                onClick={handleDeleteCancel}
+                style={{
+                  background: 'transparent',
+                  color: '#bbb',
+                  border: '1px solid #555',
+                  borderRadius: 6,
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '0.75rem 1.5rem',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                }}
+              >
+                Delete Service
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 } 

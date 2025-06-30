@@ -34,6 +34,7 @@ export default function AccountPage() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
   const [role, setRole] = useState("customer");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,13 +58,14 @@ export default function AccountPage() {
       // Fetch profile
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("username, role, profile_picture")
+        .select("username, role, profile_picture, bio")
         .eq("id", user.id)
         .single();
       if (profileError) {
         setError("Could not fetch profile.");
       } else {
         setUsername(profile.username || "");
+        setBio(profile.bio || "");
         setRole(profile.role || "customer");
         setProfilePicture(profile.profile_picture || null);
         
@@ -103,6 +105,13 @@ export default function AccountPage() {
         return;
     }
 
+    // Validate bio length
+    if (bio.length > 500) {
+        setError('Bio must be 500 characters or less.');
+        setSaving(false);
+        return;
+    }
+
     // Securely check if username is taken using the database function
     const { data: isTaken, error: rpcError } = await supabase.rpc(
       'is_username_taken',
@@ -126,7 +135,7 @@ export default function AccountPage() {
     
     const { error } = await supabase
       .from("profiles")
-      .update({ username, role, profile_picture: profilePicture })
+      .update({ username, role, profile_picture: profilePicture, bio })
       .eq("id", user.id);
     if (error) {
       setError("Failed to update profile.");
@@ -340,6 +349,30 @@ export default function AccountPage() {
                 <span className="text-gray-300 text-base">Barber</span>
               </label>
             </div>
+          </div>
+          <div style={{ marginBottom: "50px" }}>
+            <label
+              htmlFor="bio"
+              className="block text-base font-medium text-gray-300"
+              style={{ marginBottom: "10px" }}
+            >
+              Bio
+            </label>
+            <textarea
+              id="bio"
+              name="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base resize-none"
+              placeholder="Tell us about yourself..."
+              rows={4}
+              maxLength={500}
+              style={{ paddingLeft: "1rem", lineHeight: "2.2" }}
+              disabled={saving}
+            />
+            <p className="text-gray-500 text-sm mt-2">
+              {bio.length}/500 characters
+            </p>
           </div>
         </form>
         
