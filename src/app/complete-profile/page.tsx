@@ -10,6 +10,7 @@ import Image from 'next/image';
 export default function CompleteProfilePage() {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState('customer');
+  const [location, setLocation] = useState('');
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -37,7 +38,7 @@ export default function CompleteProfilePage() {
     // Try to fetch the profile
     let { data, error } = await supabase
       .from('profiles')
-      .select('username, role, profile_picture')
+      .select('username, role, location, profile_picture')
       .eq('id', user.id)
       .single();
     if (error) {
@@ -48,7 +49,7 @@ export default function CompleteProfilePage() {
       // Try to fetch again
       ({ data, error } = await supabase
         .from('profiles')
-        .select('username, role, profile_picture')
+        .select('username, role, location, profile_picture')
         .eq('id', user.id)
         .single());
       if (error || !data) {
@@ -60,6 +61,7 @@ export default function CompleteProfilePage() {
     if (data) {
       setUsername(data.username || '');
       setRole(data.role || 'customer');
+      setLocation(data.location || '');
       setProfilePicture(data.profile_picture || null);
     }
     setLoading(false);
@@ -158,7 +160,7 @@ export default function CompleteProfilePage() {
 
     const { error } = await supabase
       .from('profiles')
-      .update({ username, role, profile_picture: profilePicture })
+      .update({ username, role, location, profile_picture: profilePicture })
       .eq('id', user.id);
     if (error) {
       setError('Failed to update profile.');
@@ -245,6 +247,23 @@ export default function CompleteProfilePage() {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
                 placeholder="Choose a username"
+                style={{paddingLeft: '1rem', lineHeight: '2.5'}}
+                disabled={saving}
+              />
+            </div>
+            <div style={{ marginBottom: '25px' }}>
+              <label htmlFor="location" className="block text-base font-medium text-gray-300" style={{ marginBottom: '10px' }}>
+                Location
+              </label>
+              <input
+                id="location"
+                name="location"
+                type="text"
+                autoComplete="off"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
+                placeholder="Enter your location (e.g., New York, NY)"
                 style={{paddingLeft: '1rem', lineHeight: '2.5'}}
                 disabled={saving}
               />

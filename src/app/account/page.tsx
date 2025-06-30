@@ -35,6 +35,7 @@ export default function AccountPage() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
+  const [location, setLocation] = useState("");
   const [role, setRole] = useState("customer");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export default function AccountPage() {
       // Fetch profile
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("username, role, profile_picture, bio")
+        .select("username, role, profile_picture, bio, location")
         .eq("id", user.id)
         .single();
       if (profileError) {
@@ -66,6 +67,7 @@ export default function AccountPage() {
       } else {
         setUsername(profile.username || "");
         setBio(profile.bio || "");
+        setLocation(profile.location || "");
         setRole(profile.role || "customer");
         setProfilePicture(profile.profile_picture || null);
         
@@ -135,7 +137,7 @@ export default function AccountPage() {
     
     const { error } = await supabase
       .from("profiles")
-      .update({ username, role, profile_picture: profilePicture, bio })
+      .update({ username, role, profile_picture: profilePicture, bio, location })
       .eq("id", user.id);
     if (error) {
       setError("Failed to update profile.");
@@ -307,6 +309,27 @@ export default function AccountPage() {
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
               placeholder="Enter your username"
+              style={{ paddingLeft: "1rem", lineHeight: "2.5" }}
+              disabled={saving}
+            />
+          </div>
+          <div style={{ marginBottom: "25px" }}>
+            <label
+              htmlFor="location"
+              className="block text-base font-medium text-gray-300"
+              style={{ marginBottom: "10px" }}
+            >
+              Location
+            </label>
+            <input
+              id="location"
+              name="location"
+              type="text"
+              autoComplete="off"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
+              placeholder="Enter your location (e.g., New York, NY)"
               style={{ paddingLeft: "1rem", lineHeight: "2.5" }}
               disabled={saving}
             />
