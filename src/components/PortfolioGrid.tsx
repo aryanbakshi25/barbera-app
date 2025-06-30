@@ -759,47 +759,13 @@ export default function PortfolioGrid({ posts, profileId }: PortfolioGridProps) 
                   <>
                     <button
                       onClick={prevModalImage}
-                      style={{
-                        position: 'absolute',
-                        left: '-60px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'rgba(0, 0, 0, 0.7)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '40px',
-                        height: '40px',
-                        cursor: 'pointer',
-                        fontSize: '1.2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 2002,
-                      }}
+                      className="portfolio-modal-nav-left"
                     >
                       ‹
                     </button>
                     <button
                       onClick={nextModalImage}
-                      style={{
-                        position: 'absolute',
-                        right: '-60px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'rgba(0, 0, 0, 0.7)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '40px',
-                        height: '40px',
-                        cursor: 'pointer',
-                        fontSize: '1.2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 2002,
-                      }}
+                      className="portfolio-modal-nav-right"
                     >
                       ›
                     </button>

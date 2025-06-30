@@ -117,38 +117,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   // Barber: two-column layout
   return (
-    <main style={{ minHeight: '100vh', background: '#18181b', padding: '40px 0' }}>
-      <div style={{
-        display: 'flex',
-        maxWidth: 1100,
-        margin: '0 auto',
-        background: '#232526',
-        borderRadius: 16,
-        overflow: 'hidden',
-        boxShadow: '0 4px 32px #0004'
-      }}>
+    <main style={{ minHeight: '100vh', background: '#18181b', padding: '20px 0' }}>
+      <div className="profile-container">
         {/* Left Sidebar */}
-        <aside style={{
-          flex: '0 0 320px',
-          background: '#232526',
-          padding: '2.5rem 2rem',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          borderRight: '1px solid #333'
-        }}>
+        <aside className="profile-sidebar">
           {/* Real profile picture */}
-          <div style={{
-            width: 146,
-            height: 146,
-            borderRadius: '50%',
-            background: 'linear-gradient(144deg, var(--metallic-accent), var(--chrome-silver))',
-            marginBottom: 24,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '3px'
-          }}>
+          <div className="profile-picture">
             <div style={{
               width: '100%',
               height: '100%',
@@ -168,26 +142,26 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
               />
             </div>
           </div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: 8 }}>@{profile.username}</h1>
+          <h1 className="profile-username">@{profile.username}</h1>
           {profile.location && (
-            <div style={{ color: '#4A90E2', fontWeight: 500, fontSize: '1rem', marginBottom: 16, textAlign: 'center' }}>
+            <div className="profile-location">
               📍 {profile.location}
             </div>
           )}
-          {profile.bio && <p style={{ color: '#BDBDBD', marginBottom: 24, textAlign: 'center' }}>{profile.bio}</p>}
+          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
           <BookButton profileId={profile.id} />
           <EditProfileButton profileId={profile.id} />
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: 12, marginTop: 32 }}>Services</h2>
+          <h2 className="profile-services-title">Services</h2>
           <ClientServicesListWrapper services={services} profileId={profile.id} />
         </aside>
         {/* Right Main Content */}
-        <section style={{ flex: 1, padding: '2.5rem 2.5rem 2.5rem 2rem', background: '#232526' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Portfolio</h2>
+        <section className="profile-main">
+          <div className="profile-header">
+            <h2 className="profile-section-title">Portfolio</h2>
             <PortfolioUploadWrapper profileId={profile.id} />
           </div>
           <PortfolioGrid posts={posts} profileId={profile.id} />
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '2.5rem 0 1rem' }}>Reviews</h2>
+          <h2 className="profile-section-title" style={{ margin: '2rem 0 1rem' }}>Reviews</h2>
           <ReviewsList reviews={reviews} />
         </section>
       </div>
