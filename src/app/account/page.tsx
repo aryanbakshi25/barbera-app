@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import Image from "next/image";
 import Link from "next/link";
 import ServicesManager from "@/components/ServicesManager";
+import AvailabilityManager from "@/components/AvailabilityManager";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -404,6 +405,11 @@ export default function AccountPage() {
           <div className="mt-8">
             <ServicesManager user={user} initialServices={services} />
           </div>
+        )}
+        
+        {/* Availability Management for Barbers */}
+        {role === 'barber' && user && (
+          <AvailabilityManager user={user} />
         )}
         
         {/* Save Changes Button */}
