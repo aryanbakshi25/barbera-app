@@ -1,2 +1,4 @@
 - [ ] Payment Methods
 - [ ] Password Reset
+- [ ] Global rendering of the favicon in the browser tab
+- [ ] Put navbar on /discover

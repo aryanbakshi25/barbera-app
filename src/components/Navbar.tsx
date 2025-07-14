@@ -50,45 +50,48 @@ export default function Navbar() {
   }, [router]);
 
   return (
-    <header className="header">
-      <nav className="nav container">
-        <div className="logo">
-          <Link href="/">
-            <Image
-              src="/images/barb_cut_icon.png"
-              alt="Barbera Logo"
-              width={50}
-              height={50}
-              style={{ cursor: "pointer" }}
-            />
-          </Link>
-        </div>
-        <ul className="nav-links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#about">About</a></li>
-        </ul>
-        <div className="auth-buttons">
-          {isLoggedIn ? (
-            <Link href={`/${username}`} className="flex items-center">
+    <>
+      <header className="header" style={{ height: '90px' }}>
+        <nav className="nav container">
+          <div className="logo">
+            <Link href="/">
               <Image
-                src={profilePicture || "/images/default_pfp.png"}
-                alt="Profile"
-                width={40}
-                height={40}
-                className="rounded-full border border-gray-700 object-cover aspect-square"
-                style={{ background: '#eee' }}
+                src="/images/barb_cut_icon.png"
+                alt="Barbera Logo"
+                width={50}
+                height={50}
+                style={{ cursor: "pointer" }}
               />
             </Link>
-          ) : (
-            <>
-              <Link href="/login" className="btn btn-outline">Sign In</Link>
-              <Link href="/signup" className="btn btn-primary">Get Started</Link>
-            </>
-          )}
-        </div>
-      </nav>
-    </header>
+          </div>
+          <ul className="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#about">About</a></li>
+          </ul>
+          <div className="auth-buttons">
+            {isLoggedIn ? (
+              <Link href={`/${username}`} className="flex items-center">
+                <Image
+                  src={profilePicture || "/images/default_pfp.png"}
+                  alt="Profile"
+                  width={40}
+                  height={40}
+                  className="rounded-full border border-gray-700 object-cover aspect-square"
+                  style={{ background: '#eee' }}
+                />
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="btn btn-outline">Sign In</Link>
+                <Link href="/signup" className="btn btn-primary">Get Started</Link>
+              </>
+            )}
+          </div>
+        </nav>
+      </header>
+      <div style={{ height: '90px' }}></div>
+    </>
   );
 }

@@ -100,18 +100,20 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   if (profile.role === 'customer') {
     // Customer: universal info + simple message
     return (
-      
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18181b' }}>
-        <div style={{ background: '#232526', borderRadius: 16, padding: 32, color: '#fff', maxWidth: 500, width: '100%' }}>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 700, marginBottom: 8 }}>@{profile.username}</h1>
-          {profile.location && (
-            <div style={{ color: '#4A90E2', fontWeight: 500, fontSize: '1rem', marginBottom: 16 }}>
-              📍 {profile.location}
-            </div>
-          )}
-          {profile.bio && <p style={{ color: '#BDBDBD', marginBottom: 24 }}>{profile.bio}</p>}
-          <div style={{ color: '#4A90E2', fontWeight: 600, fontSize: '1.1rem', marginBottom: 24 }}>Community Member</div>
-          <EditProfileButton profileId={profile.id} />
+      <main>
+        <Navbar />
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18181b' }}>
+          <div style={{ background: '#232526', borderRadius: 16, padding: 32, color: '#fff', maxWidth: 500, width: '100%' }}>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: 700, marginBottom: 8 }}>@{profile.username}</h1>
+            {profile.location && (
+              <div style={{ color: '#4A90E2', fontWeight: 500, fontSize: '1rem', marginBottom: 16 }}>
+                📍 {profile.location}
+              </div>
+            )}
+            {profile.bio && <p style={{ color: '#BDBDBD', marginBottom: 24 }}>{profile.bio}</p>}
+            <div style={{ color: '#4A90E2', fontWeight: 600, fontSize: '1.1rem', marginBottom: 24 }}>Community Member</div>
+            <EditProfileButton profileId={profile.id} />
+          </div>
         </div>
       </main>
     );
@@ -119,53 +121,56 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   // Barber: two-column layout
   return (
-    <main style={{ minHeight: '100vh', background: '#18181b', padding: '20px 0' }}>
-      <div className="profile-container">
-        {/* Left Sidebar */}
-        <aside className="profile-sidebar">
-          {/* Real profile picture */}
-          <div className="profile-picture">
-            <div style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              background: '#222',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Image
-                src={profile.profile_picture || '/images/default_pfp.png'}
-                alt={`${profile.username}'s profile picture`}
-                width={140}
-                height={140}
-                style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-              />
+    <main>
+      <Navbar />
+      <div style={{ minHeight: '100vh', background: '#18181b', padding: '20px 0' }}>
+        <div className="profile-container">
+          {/* Left Sidebar */}
+          <aside className="profile-sidebar">
+            {/* Real profile picture */}
+            <div className="profile-picture">
+              <div style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                background: '#222',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Image
+                  src={profile.profile_picture || '/images/default_pfp.png'}
+                  alt={`${profile.username}'s profile picture`}
+                  width={140}
+                  height={140}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                />
+              </div>
             </div>
-          </div>
-          <h1 className="profile-username">@{profile.username}</h1>
-          {profile.location && (
-            <div className="profile-location">
-              📍 {profile.location}
+            <h1 className="profile-username">@{profile.username}</h1>
+            {profile.location && (
+              <div className="profile-location">
+                📍 {profile.location}
+              </div>
+            )}
+            {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+            <BookButton profileId={profile.id} />
+            <EditProfileButton profileId={profile.id} />
+            <h2 className="profile-services-title">Services</h2>
+            <ClientServicesListWrapper services={services} profileId={profile.id} />
+          </aside>
+          {/* Right Main Content */}
+          <section className="profile-main">
+            <div className="profile-header">
+              <h2 className="profile-section-title">Portfolio</h2>
+              <PortfolioUploadWrapper profileId={profile.id} />
             </div>
-          )}
-          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
-          <BookButton profileId={profile.id} />
-          <EditProfileButton profileId={profile.id} />
-          <h2 className="profile-services-title">Services</h2>
-          <ClientServicesListWrapper services={services} profileId={profile.id} />
-        </aside>
-        {/* Right Main Content */}
-        <section className="profile-main">
-          <div className="profile-header">
-            <h2 className="profile-section-title">Portfolio</h2>
-            <PortfolioUploadWrapper profileId={profile.id} />
-          </div>
-          <PortfolioGrid posts={posts} profileId={profile.id} />
-          <h2 className="profile-section-title" style={{ margin: '2rem 0 1rem' }}>Reviews</h2>
-          <ReviewsList reviews={reviews} />
-        </section>
+            <PortfolioGrid posts={posts} profileId={profile.id} />
+            <h2 className="profile-section-title" style={{ margin: '2rem 0 1rem' }}>Reviews</h2>
+            <ReviewsList reviews={reviews} />
+          </section>
+        </div>
       </div>
     </main>
   );
