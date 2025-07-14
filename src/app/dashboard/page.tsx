@@ -60,7 +60,16 @@ export default function DashboardPage() {
         setLoading(false);
         return;
       }
-      setAppointments(data || []);
+      
+      // Transform the data to match the Appointment interface
+      const normalized = (data || []).map((appt: any) => ({
+        ...appt,
+        service: appt.service?.[0] || null,
+        barber: appt.barber?.[0] || null,
+        customer: appt.customer?.[0] || null,
+      }));
+      
+      setAppointments(normalized);
       setLoading(false);
     };
     fetchAppointments();
