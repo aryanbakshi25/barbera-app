@@ -4,6 +4,7 @@ import Link from "next/link"; // Import the Link component
 import { useEffect, useState } from "react";
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
+import { Camera, UserSearch, CalendarCheck, MessagesSquare, Star, ChartColumnStacked } from 'lucide-react';
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -128,7 +129,9 @@ export default function Home() {
           </div>
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon">📸</div>
+              <div className="feature-icon">
+                <Camera className="w-7 h-7 text-white" />
+              </div>
               <h3>Visual Portfolios</h3>
               <p>
                 Showcase your best work with stunning before-and-after galleries
@@ -136,7 +139,9 @@ export default function Home() {
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">🔍</div>
+              <div className="feature-icon">
+                <UserSearch className="w-7 h-7 text-white" />
+              </div>
               <h3>Smart Discovery</h3>
               <p>
                 Find the perfect barber based on location, specialty, style
@@ -144,15 +149,19 @@ export default function Home() {
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">📅</div>
-              <h3>Seamless Booking</h3>
+              <div className="feature-icon">
+                <CalendarCheck className="w-8 h-7 text-white" />
+              </div>
+              <h3> Seamless Booking </h3>
               <p>
                 Book appointments instantly with real-time availability and
                 automated reminders for both parties.
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">💬</div>
+              <div className="feature-icon">
+                <MessagesSquare className="w-7 h-7 text-white" />
+              </div>
               <h3>Direct Communication</h3>
               <p>
                 Connect directly with barbers for consultations, style
@@ -160,7 +169,9 @@ export default function Home() {
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">⭐</div>
+              <div className="feature-icon">
+                <Star className="w-7 h-7 text-white" />
+              </div>
               <h3>Trust & Reviews</h3>
               <p>
                 Build trust through authentic reviews and ratings from real clients
@@ -168,7 +179,9 @@ export default function Home() {
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">📊</div>
+              <div className="feature-icon">
+                <ChartColumnStacked className="w-7 h-7 text-white" />
+              </div>
               <h3>Business Insights</h3>
               <p>
                 Track your performance with analytics on bookings, client
