@@ -7,6 +7,7 @@ import ClientServicesListWrapper from '@/components/ClientServicesListWrapper';
 import EditProfileButton from '@/components/EditProfileButton';
 import PortfolioUploadWrapper from '@/components/PortfolioUploadWrapper';
 import PortfolioGrid from '@/components/PortfolioGrid';
+import Navbar from "@/components/Navbar";
 
 // TypeScript interfaces for data
 interface Service {
@@ -99,6 +100,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   if (profile.role === 'customer') {
     // Customer: universal info + simple message
     return (
+      
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18181b' }}>
         <div style={{ background: '#232526', borderRadius: 16, padding: 32, color: '#fff', maxWidth: 500, width: '100%' }}>
           <h1 style={{ fontSize: '2.2rem', fontWeight: 700, marginBottom: 8 }}>@{profile.username}</h1>
