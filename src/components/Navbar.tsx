@@ -86,7 +86,7 @@ export default function Navbar() {
             <li><a href="#features">Features</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
             <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#about">About</a></li>
+            <li><a href="/discover">Discover</a></li>
           </ul>
           <div
             className="auth-buttons"
