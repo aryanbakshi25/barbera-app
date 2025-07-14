@@ -9,6 +9,7 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [windowWidth, setWindowWidth] = useState<number | null>(null);
   const router = useRouter();
 
@@ -29,7 +30,7 @@ export default function Navbar() {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('username, profile_picture')
+          .select('username, profile_picture, role')
           .eq('id', user.id)
           .single();
         
@@ -37,6 +38,7 @@ export default function Navbar() {
           setIsLoggedIn(true);
           setProfilePicture(profile.profile_picture || null);
           setUsername(profile.username);
+          setRole(profile.role || null);
         } else {
           router.push('/complete-profile');
         }
@@ -44,6 +46,7 @@ export default function Navbar() {
         setIsLoggedIn(false);
         setProfilePicture(null);
         setUsername(null);
+        setRole(null);
       }
     };
     checkUser();
@@ -85,7 +88,7 @@ export default function Navbar() {
           >
             <li><a href="#features">Features</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
-            <li><a href="#pricing">Pricing</a></li>
+            {(!role || role !== 'customer') && <li><a href="#pricing">Pricing</a></li>}
             <li><a href="/discover">Discover</a></li>
           </ul>
           <div

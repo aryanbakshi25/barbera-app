@@ -1,4 +1,6 @@
 - [ ] Payment Methods
 - [ ] Password Reset
 - [ ] Global rendering of the favicon in the browser tab
-- [ ] Put navbar on /discover
+- [x] Put navbar on /discover
+- [ ] Customer edit profile / account page needs to be flex
+- [ ] Deleting users
