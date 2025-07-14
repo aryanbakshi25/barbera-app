@@ -13,6 +13,15 @@ interface Appointment {
   customer: { username: string; } | null;
 }
 
+interface RawAppointment {
+  id: string;
+  appointment_time: string;
+  status: string;
+  service: { name: string; }[];
+  barber: { username: string; }[];
+  customer: { username: string; }[];
+}
+
 export default function DashboardPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [role, setRole] = useState<string | null>(null);
@@ -62,7 +71,7 @@ export default function DashboardPage() {
       }
       
       // Transform the data to match the Appointment interface
-      const normalized = (data || []).map((appt: any) => ({
+      const normalized = (data || []).map((appt: RawAppointment) => ({
         ...appt,
         service: appt.service?.[0] || null,
         barber: appt.barber?.[0] || null,
