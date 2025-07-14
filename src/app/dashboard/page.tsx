@@ -17,9 +17,9 @@ interface RawAppointment {
   id: string;
   appointment_time: string;
   status: string;
-  service: { name: string; }[];
-  barber: { username: string; }[];
-  customer: { username: string; }[];
+  service: { name: string; };
+  barber: { username: string; };
+  customer: { username: string; };
 }
 
 export default function DashboardPage() {
@@ -71,12 +71,14 @@ export default function DashboardPage() {
       }
       
       // Transform the data to match the Appointment interface
-      const normalized = (data || []).map((appt: RawAppointment) => ({
-        ...appt,
-        service: appt.service?.[0] || null,
-        barber: appt.barber?.[0] || null,
-        customer: appt.customer?.[0] || null,
-      }));
+      const normalized = (data || []).map((appt: RawAppointment) => {
+        return {
+          ...appt,
+          service: appt.service || null,
+          barber: appt.barber || null,
+          customer: appt.customer || null,
+        };
+      });
       
       setAppointments(normalized);
       setLoading(false);
@@ -117,7 +119,9 @@ export default function DashboardPage() {
                     <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'MMM d, yyyy')}</td>
                     <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'h:mm a')}</td>
                     <td style={{ padding: '10px 8px', color: '#fff' }}>{role === 'barber' ? appt.customer?.username : appt.barber?.username}</td>
-                    <td style={{ padding: '10px 8px', color: appt.status === 'confirmed' ? '#10b981' : '#f59e42', fontWeight: 600 }}>{appt.status || 'pending'}</td>
+                    <td style={{ padding: '10px 8px', color: appt.status === 'confirmed' ? '#10b981' : '#f59e42', fontWeight: 600 }}>
+                      {appt.status ? appt.status.replace(/^'|'$/g, '') : 'pending'}
+                    </td>
                   </tr>
                 );
               })}
