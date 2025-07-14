@@ -9,7 +9,15 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const [windowWidth, setWindowWidth] = useState<number | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const supabase = createBrowserClient(
@@ -53,7 +61,7 @@ export default function Navbar() {
     <>
       <header className="header" style={{ height: '90px' }}>
         <nav className="nav container">
-          <div className="logo">
+          <div className="logo" style={{ position: 'absolute', left: 30, top: '50%', transform: 'translateY(-50%)' }}>
             <Link href="/">
               <Image
                 src="/images/barb_cut_icon.png"
@@ -64,13 +72,34 @@ export default function Navbar() {
               />
             </Link>
           </div>
-          <ul className="nav-links">
+          <ul
+            className="nav-links"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              gap: '20px',
+              display: windowWidth && windowWidth < 768 ? 'none' : 'flex',
+            }}
+          >
             <li><a href="#features">Features</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#about">About</a></li>
           </ul>
-          <div className="auth-buttons">
+          <div
+            className="auth-buttons"
+            style={{
+              position: 'absolute',
+              right: 30,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'center',
+            }}
+          >
             {isLoggedIn ? (
               <Link href={`/${username}`} className="flex items-center">
                 <Image
