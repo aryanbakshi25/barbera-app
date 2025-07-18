@@ -137,7 +137,7 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
   // Load availability on component mount
   useEffect(() => {
     fetchAvailability();
-  }, [user.id]);
+  }, [user.id, fetchAvailability]);
 
   // Update time for a specific day
   const updateTime = (dayOfWeek: number, field: 'start_time' | 'end_time', value: string) => {

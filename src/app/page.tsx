@@ -2,12 +2,11 @@
 import Image from "next/image";
 import Link from "next/link"; // Import the Link component
 
-import { useRouter } from 'next/navigation';
+
 import { Camera, UserSearch, CalendarCheck, MessagesSquare, Star, ChartColumnStacked } from 'lucide-react';
 import Navbar from "@/components/Navbar";
 
 export default function Home() {
-  const router = useRouter();
 
 
 
