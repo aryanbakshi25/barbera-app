@@ -148,7 +148,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <div style={{ marginBottom: '50px', position: 'relative' }}>
+          <div style={{ marginBottom: '25px', position: 'relative' }}>
             <label htmlFor="password" className="block text-base font-medium text-gray-300" style={{ marginBottom: '10px' }}>
               Password
             </label>
@@ -186,6 +186,16 @@ export default function LoginPage() {
             >
               <EyeIcon visible={showPassword} />
             </button>
+          </div>
+
+          {/* Forgot Password Link */}
+          <div className="text-right mb-8">
+            <Link 
+              href="/reset-password" 
+              className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
+            >
+              Forgot your password?
+            </Link>
           </div>
 
           {/* Sign In Button */}

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 'use client';
 import Image from "next/image";
 import Link from "next/link";
@@ -51,7 +52,7 @@ export default function Navbar() {
     };
     checkUser();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, _session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
       checkUser();
     });
 
@@ -86,10 +87,10 @@ export default function Navbar() {
               display: windowWidth && windowWidth < 768 ? 'none' : 'flex',
             }}
           >
-            <li><a href="#features">Features</a></li>
-            <li><a href="#how-it-works">How It Works</a></li>
-            {(!role || role !== 'customer') && <li><a href="#pricing">Pricing</a></li>}
-            <li><a href="/discover">Discover</a></li>
+            <li><Link href="/#features">Features</Link></li>
+            <li><Link href="/#how-it-works">How It Works</Link></li>
+            {(!role || role !== 'customer') && <li><Link href="/#pricing">Pricing</Link></li>}
+            <li><Link href="/discover">Discover</Link></li>
           </ul>
           <div
             className="auth-buttons"

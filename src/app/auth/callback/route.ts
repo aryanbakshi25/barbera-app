@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  const next = requestUrl.searchParams.get('next');
 
   if (code) {
     const cookieStore = await cookies();
@@ -35,6 +36,11 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
+  // Check if this is a password reset flow
+  if (next && next.includes('update-password')) {
+    return NextResponse.redirect(`${requestUrl.origin}/update-password`);
+  }
+
   // URL to redirect to after sign in process completes
-  return NextResponse.redirect('https://barbera.vercel.app/');
+  return NextResponse.redirect(requestUrl.origin);
 } 

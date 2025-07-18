@@ -1,5 +1,5 @@
 - [ ] Payment Methods
-- [ ] Password Reset
+- [x] Password Reset
 - [ ] Global rendering of the favicon in the browser tab
 - [x] Put navbar on /discover
 - [ ] Customer edit profile / account page needs to be flex

@@ -68,7 +68,7 @@ export default function Home() {
             </p>
             <div className="hero-buttons">
               <Link href="/discover" className="btn btn-primary btn-large">Find Your Barber</Link>
-              <Link href="/signup-barber" className="btn btn-secondary btn-large">Join as Barber</Link>
+              <Link href="/ar-hair-filter" className="btn btn-secondary btn-large">Try AR Hair Filter</Link>
             </div>
             <Image
               src="/images/undraw_barber_utly.svg" // Assumes image is in public/images
@@ -230,7 +230,7 @@ export default function Home() {
               <h3>For Clients</h3>
               <Link href="/discover">Find Barbers</Link>
               <Link href="/book">Book Appointment</Link>
-              <Link href="#how-it-works">How It Works</Link>
+              <Link href="/#how-it-works">How It Works</Link>
               <Link href="/reviews">Reviews</Link>
             </div>
             <div className="footer-section">

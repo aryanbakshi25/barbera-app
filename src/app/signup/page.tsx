@@ -48,7 +48,7 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `https://barbera.vercel.app/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) {
