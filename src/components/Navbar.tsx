@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-html-link-for-pages */
+
 'use client';
 import Image from "next/image";
 import Link from "next/link";

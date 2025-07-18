@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
               />
             </Link>
             <h2 className="text-5xl font-bold text-white" style={{ marginBottom: '12px' }}>Check Your Email</h2>
-            <p className="text-gray-400 text-xl">We've sent you a password reset link</p>
+            <p className="text-gray-400 text-xl">We&apos;ve sent you a password reset link</p>
           </div>
 
           {/* Success Message */}

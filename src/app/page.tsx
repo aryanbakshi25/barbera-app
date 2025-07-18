@@ -1,56 +1,15 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link"; // Import the Link component
-import { useEffect, useState } from "react";
-import { createBrowserClient } from '@supabase/ssr';
+
 import { useRouter } from 'next/navigation';
 import { Camera, UserSearch, CalendarCheck, MessagesSquare, Star, ChartColumnStacked } from 'lucide-react';
 import Navbar from "@/components/Navbar";
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username, profile_picture')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile && profile.username) {
-          setIsLoggedIn(true);
-          setProfilePicture(profile.profile_picture || null);
-          setUsername(profile.username);
-        } else {
-          router.push('/complete-profile');
-        }
-      } else {
-        setIsLoggedIn(false);
-        setProfilePicture(null);
-        setUsername(null);
-      }
-    };
-    checkUser();
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, _session) => {
-      checkUser();
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [router]);
 
   return (
     <main>

@@ -33,11 +33,11 @@ export default function ARHairFilterPage() {
 
         {/* Feature Description */}
         <div style={{ marginBottom: '60px' }}>
-          <p className="text-gray-300 text-lg leading-relaxed mb-8">
-            Experience the future of hairstyling with our revolutionary AR hair filter. 
-            Try on different hairstyles, cuts, and colors in real-time using your device's camera. 
-            See how you'll look before making any changes to your actual hair.
-          </p>
+                      <p className="text-gray-300 text-lg leading-relaxed mb-8">
+              Experience the future of hairstyling with our revolutionary AR hair filter. 
+              Try on different hairstyles, cuts, and colors in real-time using your device&apos;s camera. 
+              See how you&apos;ll look before making any changes to your actual hair.
+            </p>
 
           {/* Feature List */}
           <div className="space-y-4">
