@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { toast } from 'react-hot-toast';
 import React from 'react';
@@ -91,7 +91,7 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
   };
 
   // Fetch existing availability from database
-  const fetchAvailability = async () => {
+  const fetchAvailability = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -132,7 +132,7 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id, supabase]);
 
   // Load availability on component mount
   useEffect(() => {

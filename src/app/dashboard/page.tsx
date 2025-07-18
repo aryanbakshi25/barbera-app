@@ -17,9 +17,9 @@ interface RawAppointment {
   id: string;
   appointment_time: string;
   status: string;
-  service: { name: string; };
-  barber: { username: string; };
-  customer: { username: string; };
+  service: { name: string; }[];
+  barber: { username: string; }[];
+  customer: { username: string; }[];
 }
 
 export default function DashboardPage() {
@@ -74,9 +74,9 @@ export default function DashboardPage() {
       const normalized = (data || []).map((appt: RawAppointment) => {
         return {
           ...appt,
-          service: appt.service || null,
-          barber: appt.barber || null,
-          customer: appt.customer || null,
+          service: appt.service?.[0] || null,
+          barber: appt.barber?.[0] || null,
+          customer: appt.customer?.[0] || null,
         };
       });
       
