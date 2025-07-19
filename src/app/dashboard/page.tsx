@@ -17,9 +17,12 @@ interface RawAppointment {
   id: string;
   appointment_time: string;
   status: string;
-  service: { name: string; }[];
-  barber: { username: string; }[];
-  customer: { username: string; }[];
+  service_id: string;
+  barber_id: string;
+  customer_id: string;
+  services: { name: string; }[];
+  barber_profile: { username: string; }[];
+  customer_profile: { username: string; }[];
 }
 
 export default function DashboardPage() {
@@ -27,6 +30,7 @@ export default function DashboardPage() {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPastAppointments, setShowPastAppointments] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -56,7 +60,17 @@ export default function DashboardPage() {
       }
       setRole(profile.role);
       let query = supabase.from('appointments')
-        .select('id, appointment_time, status, service:service_id(name), barber:barber_id(username), customer:customer_id(username)')
+        .select(`
+          id, 
+          appointment_time, 
+          status, 
+          service_id,
+          barber_id,
+          customer_id,
+          services!service_id(name),
+          barber_profile:barber_id(username),
+          customer_profile:customer_id(username)
+        `)
         .order('appointment_time', { ascending: false });
       if (profile.role === 'customer') {
         query = query.eq('customer_id', user.id);
@@ -73,10 +87,12 @@ export default function DashboardPage() {
       // Transform the data to match the Appointment interface
       const normalized = (data || []).map((appt: RawAppointment) => {
         return {
-          ...appt,
-          service: appt.service?.[0] || null,
-          barber: appt.barber?.[0] || null,
-          customer: appt.customer?.[0] || null,
+          id: appt.id,
+          appointment_time: appt.appointment_time,
+          status: appt.status,
+          service: appt.services?.[0] || null,
+          barber: appt.barber_profile?.[0] || null,
+          customer: appt.customer_profile?.[0] || null,
         };
       });
       
@@ -87,18 +103,68 @@ export default function DashboardPage() {
     // eslint-disable-next-line
   }, []);
 
+  // Filter appointments based on date and showPastAppointments state
+  const filteredAppointments = appointments.filter(appt => {
+    const appointmentDate = new Date(appt.appointment_time);
+    const now = new Date();
+    const isPast = appointmentDate < now;
+    
+    if (showPastAppointments) {
+      return true; // Show all appointments
+    } else {
+      return !isPast; // Only show future appointments
+    }
+  });
+
   return (
     <div style={{ minHeight: '100vh', background: '#18181b', padding: '2rem 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', background: '#232526', borderRadius: 16, padding: 32, color: '#fff', boxShadow: '0 4px 32px #0008' }}>
         <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: 24, textAlign: 'center' }}>
           {role === 'barber' ? 'Received Appointments' : 'My Booked Appointments'}
         </h2>
+        
+        {/* Toggle button for past appointments */}
+        {!loading && !error && appointments.length > 0 && (
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <button
+              onClick={() => setShowPastAppointments(!showPastAppointments)}
+              style={{
+                background: showPastAppointments ? '#10b981' : 'transparent',
+                color: showPastAppointments ? '#ffffff' : '#10b981',
+                border: '1px solid #10b981',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                if (!showPastAppointments) {
+                  e.currentTarget.style.background = '#10b981';
+                  e.currentTarget.style.color = '#ffffff';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!showPastAppointments) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = '#10b981';
+                }
+              }}
+            >
+              {showPastAppointments ? 'Hide Past Appointments' : 'Show Past Appointments'}
+            </button>
+          </div>
+        )}
+        
         {loading ? (
           <div style={{ color: '#bbb', textAlign: 'center' }}>Loading...</div>
         ) : error ? (
           <div style={{ color: '#ef4444', textAlign: 'center' }}>{error}</div>
-        ) : appointments.length === 0 ? (
-          <div style={{ color: '#bbb', textAlign: 'center' }}>No appointments found.</div>
+        ) : filteredAppointments.length === 0 ? (
+          <div style={{ color: '#bbb', textAlign: 'center' }}>
+            {showPastAppointments ? 'No appointments found.' : 'No upcoming appointments found.'}
+          </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 16 }}>
             <thead>
@@ -111,10 +177,17 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {appointments.map(appt => {
+              {filteredAppointments.map(appt => {
                 const dt = parseISO(appt.appointment_time);
+                const isPast = dt < new Date();
                 return (
-                  <tr key={appt.id} style={{ borderBottom: '1px solid #333' }}>
+                  <tr 
+                    key={appt.id} 
+                    style={{ 
+                      borderBottom: '1px solid #333',
+                      opacity: isPast ? 0.6 : 1,
+                    }}
+                  >
                     <td style={{ padding: '10px 8px', color: '#fff' }}>{appt.service?.name || '-'}</td>
                     <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'MMM d, yyyy')}</td>
                     <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'h:mm a')}</td>
