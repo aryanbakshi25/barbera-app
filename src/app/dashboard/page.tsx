@@ -160,40 +160,94 @@ export default function DashboardPage() {
             {showPastAppointments ? 'No appointments found.' : 'No upcoming appointments found.'}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 16 }}>
-            <thead>
-              <tr style={{ background: '#18181b' }}>
-                <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Service</th>
-                <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Date</th>
-                <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Time</th>
-                <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>{role === 'barber' ? 'Customer' : 'Barber'}</th>
-                <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
+          <div style={{ marginTop: 16 }}>
+            {/* Desktop Table View */}
+            <div className="hidden md:table" style={{ display: 'none' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#18181b' }}>
+                    <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Service</th>
+                    <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Date</th>
+                    <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Time</th>
+                    <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>{role === 'barber' ? 'Customer' : 'Barber'}</th>
+                    <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAppointments.map(appt => {
+                    const dt = parseISO(appt.appointment_time);
+                    const isPast = dt < new Date();
+                    return (
+                      <tr 
+                        key={appt.id} 
+                        style={{ 
+                          borderBottom: '1px solid #333',
+                          opacity: isPast ? 0.6 : 1,
+                        }}
+                      >
+                        <td style={{ padding: '10px 8px', color: '#fff' }}>{appt.service?.name || '-'}</td>
+                        <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'MMM d, yyyy')}</td>
+                        <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'h:mm a')}</td>
+                        <td style={{ padding: '10px 8px', color: '#fff' }}>{role === 'barber' ? appt.customer?.username : appt.barber?.username}</td>
+                        <td style={{ padding: '10px 8px', color: appt.status === 'confirmed' ? '#10b981' : '#f59e42', fontWeight: 600 }}>
+                          {appt.status ? appt.status.replace(/^'|'$/g, '') : 'pending'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="block md:hidden" style={{ display: 'block' }}>
               {filteredAppointments.map(appt => {
                 const dt = parseISO(appt.appointment_time);
                 const isPast = dt < new Date();
                 return (
-                  <tr 
-                    key={appt.id} 
-                    style={{ 
-                      borderBottom: '1px solid #333',
+                  <div
+                    key={appt.id}
+                    style={{
+                      background: '#1a1a1a',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      marginBottom: '12px',
+                      border: '1px solid #333',
                       opacity: isPast ? 0.6 : 1,
                     }}
                   >
-                    <td style={{ padding: '10px 8px', color: '#fff' }}>{appt.service?.name || '-'}</td>
-                    <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'MMM d, yyyy')}</td>
-                    <td style={{ padding: '10px 8px', color: '#fff' }}>{format(dt, 'h:mm a')}</td>
-                    <td style={{ padding: '10px 8px', color: '#fff' }}>{role === 'barber' ? appt.customer?.username : appt.barber?.username}</td>
-                    <td style={{ padding: '10px 8px', color: appt.status === 'confirmed' ? '#10b981' : '#f59e42', fontWeight: 600 }}>
-                      {appt.status ? appt.status.replace(/^'|'$/g, '') : 'pending'}
-                    </td>
-                  </tr>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#10b981', fontSize: '1.1rem', fontWeight: 600, marginBottom: '4px' }}>
+                          {appt.service?.name || '-'}
+                        </div>
+                        <div style={{ color: '#fff', fontSize: '0.9rem' }}>
+                          {format(dt, 'MMM d, yyyy')} at {format(dt, 'h:mm a')}
+                        </div>
+                      </div>
+                      <div style={{ 
+                        background: appt.status === 'confirmed' ? '#10b981' : '#f59e42',
+                        color: '#fff',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'capitalize'
+                      }}>
+                        {appt.status ? appt.status.replace(/^'|'$/g, '') : 'pending'}
+                      </div>
+                    </div>
+                    <div style={{ color: '#bbb', fontSize: '0.9rem' }}>
+                      {role === 'barber' ? 'Customer: ' : 'Barber: '}
+                      <span style={{ color: '#fff', fontWeight: 500 }}>
+                        {role === 'barber' ? appt.customer?.username : appt.barber?.username}
+                      </span>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
         </div>
       </div>
