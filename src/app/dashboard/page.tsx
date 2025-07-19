@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createBrowserClient } from '@supabase/ssr';
 import { format, parseISO } from 'date-fns';
+import Navbar from "@/components/Navbar";
 
 interface Appointment {
   id: string;
@@ -117,8 +118,10 @@ export default function DashboardPage() {
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: '#18181b', padding: '2rem 0' }}>
-      <div style={{ maxWidth: 700, margin: '0 auto', background: '#232526', borderRadius: 16, padding: 32, color: '#fff', boxShadow: '0 4px 32px #0008' }}>
+    <main>
+      <Navbar />
+      <div style={{ minHeight: '100vh', background: '#18181b', padding: '2rem 0' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', background: '#232526', borderRadius: 16, padding: 32, color: '#fff', boxShadow: '0 4px 32px #0008' }}>
         <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: 24, textAlign: 'center' }}>
           {role === 'barber' ? 'Received Appointments' : 'My Booked Appointments'}
         </h2>
@@ -201,7 +204,8 @@ export default function DashboardPage() {
             </tbody>
           </table>
         )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 } 
