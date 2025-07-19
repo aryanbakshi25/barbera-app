@@ -21,9 +21,9 @@ interface RawAppointment {
   service_id: string;
   barber_id: string;
   customer_id: string;
-  services: { name: string; }[];
-  barber_profile: { username: string; }[];
-  customer_profile: { username: string; }[];
+  services: { name: string; };
+  barber_profile: { username: string; };
+  customer_profile: { username: string; };
 }
 
 export default function DashboardPage() {
@@ -68,7 +68,7 @@ export default function DashboardPage() {
           service_id,
           barber_id,
           customer_id,
-          services!service_id(name),
+          services(name),
           barber_profile:barber_id(username),
           customer_profile:customer_id(username)
         `)
@@ -86,14 +86,14 @@ export default function DashboardPage() {
       }
       
       // Transform the data to match the Appointment interface
-      const normalized = (data || []).map((appt: RawAppointment) => {
+      const normalized = (data || []).map((appt: any) => {
         return {
           id: appt.id,
           appointment_time: appt.appointment_time,
           status: appt.status,
-          service: appt.services?.[0] || null,
-          barber: appt.barber_profile?.[0] || null,
-          customer: appt.customer_profile?.[0] || null,
+          service: appt.services || null,
+          barber: appt.barber_profile || null,
+          customer: appt.customer_profile || null,
         };
       });
       
