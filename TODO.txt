@@ -5,3 +5,4 @@
 - [ ] Customer edit profile / account page needs to be flex
 - [ ] Deleting users
 - [ ] Have service and customer name show up in /dashboard
+- [ ] *Long term* customer uploads pictures they like and computer vision scans it and finds a barber that does that haircut to match with it

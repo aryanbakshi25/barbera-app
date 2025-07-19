@@ -106,33 +106,31 @@ export default function Navbar() {
           >
             {isLoggedIn ? (
               <>
-                {role === 'barber' && (
-                  <Link 
-                    href="/dashboard" 
-                    className="btn btn-outline"
-                    style={{
-                      fontSize: '0.875rem',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #4b5563',
-                      color: '#e5e7eb',
-                      textDecoration: 'none',
-                      transition: 'all 0.2s',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#4b5563';
-                      e.currentTarget.style.color = '#ffffff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = '#e5e7eb';
-                    }}
-                  >
-                    Dashboard
-                  </Link>
-                )}
+                <Link 
+                  href="/dashboard" 
+                  className="btn btn-outline"
+                  style={{
+                    fontSize: '0.875rem',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #4b5563',
+                    color: '#e5e7eb',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#4b5563';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#e5e7eb';
+                  }}
+                >
+                  Dashboard
+                </Link>
                 <Link href={`/${username}`} className="flex items-center">
                   <Image
                     src={profilePicture || "/images/default_pfp.png"}
