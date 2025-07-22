@@ -42,7 +42,7 @@ function normalizeTime(time: string) {
 }
 
 export default function BookingModal({ barberId, services, customerId, onClose }: BookingModalProps) {
-  const [step, setStep] = useState<'service' | 'date' | 'time' | 'confirm'>('service');
+  const [step, setStep] = useState<'service' | 'date' | 'time' | 'payment' | 'confirm'>('service');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
@@ -330,9 +330,21 @@ export default function BookingModal({ barberId, services, customerId, onClose }
             <button
               className="confirm-btn"
               disabled={!selectedTime || booking}
-              onClick={handleBook}
+              onClick={() => setStep('payment')}
             >
               {booking ? 'Booking...' : 'Confirm'}
+            </button>
+          </div>
+        )}
+
+        {step === 'payment' && (
+          <div>
+            <h3>Payment</h3>
+            {/* Replace this with your real Stripe Elements UI */}
+            <p>Stripe payment form goes here...</p>
+            <button className="back-btn" onClick={() => setStep('time')}>Back</button>
+            <button className="confirm-btn" onClick={handleBook} disabled={booking}>
+              {booking ? 'Processing...' : 'Pay & Confirm'}
             </button>
           </div>
         )}
