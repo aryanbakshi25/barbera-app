@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { DayPicker } from 'react-day-picker';
 import { format, addMinutes, isBefore, isAfter, isEqual, parseISO, setHours, setMinutes, startOfDay, addDays } from 'date-fns';
 import 'react-day-picker/dist/style.css';
+import PaymentForm from './PaymentForm';
 
 interface Service {
   id: string;
@@ -42,13 +43,12 @@ function normalizeTime(time: string) {
 }
 
 export default function BookingModal({ barberId, services, customerId, onClose }: BookingModalProps) {
-  const [step, setStep] = useState<'service' | 'date' | 'time' | 'confirm'>('service');
+  const [step, setStep] = useState<'service' | 'date' | 'time' | 'payment' | 'confirm'>('service');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
   const [selectedTime, setSelectedTime] = useState<Date | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [booking, setBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [availDays, setAvailDays] = useState<Set<number>>(new Set());
 
@@ -205,32 +205,7 @@ export default function BookingModal({ barberId, services, customerId, onClose }
     fetchAvailabilityForCalendar();
   }, [selectedService, barberId]);
 
-  // Step 4: Book appointment
-  const handleBook = async () => {
-    if (!selectedService || !selectedTime || !customerId) return;
-    setBooking(true);
-    setError(null);
 
-    const appointment_time = selectedTime.toISOString();
-
-    const { error: insertError } = await supabase.from('appointments').insert([
-      {
-        barber_id: barberId,
-        customer_id: customerId,
-        service_id: selectedService.id,
-        appointment_time,
-      },
-    ]);
-
-    setBooking(false);
-
-    if (insertError) {
-      console.error('Error booking appointment:', insertError);
-      setError('Failed to book appointment. Please try again.');
-    } else {
-      setStep('confirm');
-    }
-  };
 
   // UI rendering
   return (
@@ -329,11 +304,32 @@ export default function BookingModal({ barberId, services, customerId, onClose }
             <button className="back-btn" onClick={() => setStep('date')}>Back</button>
             <button
               className="confirm-btn"
-              disabled={!selectedTime || booking}
-              onClick={handleBook}
+              disabled={!selectedTime}
+              onClick={() => setStep('payment')}
             >
-              {booking ? 'Booking...' : 'Confirm'}
+              Continue to Payment
             </button>
+          </div>
+        )}
+
+        {step === 'payment' && selectedService && selectedTime && (
+          <div>
+            <button className="close-btn" onClick={onClose} title="Close">&times;</button>
+            <h3>Complete Payment</h3>
+            <PaymentForm
+              amount={selectedService.price}
+              serviceName={selectedService.name}
+              appointmentTime={selectedTime.toISOString()}
+              barberId={barberId}
+              customerId={customerId}
+              serviceId={selectedService.id}
+              onSuccess={() => setStep('confirm')}
+              onError={(error) => {
+                setError(error);
+                setStep('time');
+              }}
+              onCancel={() => setStep('time')}
+            />
           </div>
         )}
 
@@ -374,8 +370,10 @@ export default function BookingModal({ barberId, services, customerId, onClose }
           background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
         .booking-modal {
-          background: #232526; color: #fff; border-radius: 12px; padding: 2rem; min-width: 320px; max-width: 95vw; box-shadow: 0 4px 32px #0008;
+          background: #232526; color: #fff; border-radius: 12px; padding: 2rem; min-width: 320px; max-width: 95vw; max-height: 90vh; box-shadow: 0 4px 32px #0008;
           position: relative;
+          overflow-y: auto;
+          overflow-x: hidden;
         }
         .close-btn {
           position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; z-index: 10;
@@ -461,7 +459,11 @@ export default function BookingModal({ barberId, services, customerId, onClose }
           letter-spacing: 0.01em;
         }
         @media (max-width: 600px) {
-          .booking-modal { padding: 1rem; min-width: 95vw; }
+          .booking-modal { 
+            padding: 1rem; 
+            min-width: 95vw; 
+            max-height: 95vh;
+          }
           .slots-list-vertical { max-height: 180px; }
         }
       `}</style>

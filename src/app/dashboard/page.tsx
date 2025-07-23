@@ -9,6 +9,7 @@ interface Appointment {
   id: string;
   appointment_time: string;
   status: string;
+  payment_status?: string;
   service: { name: string; } | null;
   barber: { username: string; } | null;
   customer: { username: string; } | null;
@@ -55,6 +56,7 @@ export default function DashboardPage() {
           id, 
           appointment_time, 
           status, 
+          payment_status,
           service_id,
           barber_id,
           customer_id,
@@ -82,6 +84,7 @@ export default function DashboardPage() {
           id: appt.id,
           appointment_time: appt.appointment_time,
           status: appt.status,
+          payment_status: appt.payment_status,
           service: appt.services || null,
           barber: appt.barber_profile || null,
           customer: appt.customer_profile || null,
@@ -171,6 +174,7 @@ export default function DashboardPage() {
                     <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Time</th>
                     <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>{role === 'barber' ? 'Customer' : 'Barber'}</th>
                     <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Status</th>
+                    <th style={{ color: '#10b981', padding: '12px 8px', fontWeight: 600 }}>Payment</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -191,6 +195,9 @@ export default function DashboardPage() {
                         <td style={{ padding: '10px 8px', color: '#fff' }}>{role === 'barber' ? appt.customer?.username : appt.barber?.username}</td>
                         <td style={{ padding: '10px 8px', color: appt.status === 'confirmed' ? '#10b981' : '#f59e42', fontWeight: 600 }}>
                           {appt.status ? appt.status.replace(/^'|'$/g, '') : 'pending'}
+                        </td>
+                        <td style={{ padding: '10px 8px', color: appt.payment_status === 'paid' ? '#10b981' : '#f59e42', fontWeight: 600 }}>
+                          {appt.payment_status || 'pending'}
                         </td>
                       </tr>
                     );
@@ -225,16 +232,29 @@ export default function DashboardPage() {
                           {format(dt, 'MMM d, yyyy')} at {format(dt, 'h:mm a')}
                         </div>
                       </div>
-                      <div style={{ 
-                        background: appt.status === 'confirmed' ? '#10b981' : '#f59e42',
-                        color: '#fff',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        textTransform: 'capitalize'
-                      }}>
-                        {appt.status ? appt.status.replace(/^'|'$/g, '') : 'pending'}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                        <div style={{ 
+                          background: appt.status === 'confirmed' ? '#10b981' : '#f59e42',
+                          color: '#fff',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          textTransform: 'capitalize'
+                        }}>
+                          {appt.status ? appt.status.replace(/^'|'$/g, '') : 'pending'}
+                        </div>
+                        <div style={{ 
+                          background: appt.payment_status === 'paid' ? '#10b981' : '#f59e42',
+                          color: '#fff',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          textTransform: 'capitalize'
+                        }}>
+                          {appt.payment_status || 'pending'}
+                        </div>
                       </div>
                     </div>
                     <div style={{ color: '#bbb', fontSize: '0.9rem' }}>

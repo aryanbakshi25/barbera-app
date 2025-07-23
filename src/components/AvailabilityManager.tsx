@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { toast } from 'react-hot-toast';
 import React from 'react';
@@ -46,7 +46,7 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
   };
 
   // Days of the week for display
-  const daysOfWeek = [
+  const daysOfWeek = useMemo(() => [
     { value: 0, label: 'Sunday' },
     { value: 1, label: 'Monday' },
     { value: 2, label: 'Tuesday' },
@@ -54,7 +54,7 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
     { value: 4, label: 'Thursday' },
     { value: 5, label: 'Friday' },
     { value: 6, label: 'Saturday' },
-  ];
+  ], []);
 
   // Generate time options with 5-minute intervals
   const generateTimeOptions = () => {
@@ -79,17 +79,6 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
 
   const timeOptions = generateTimeOptions();
 
-  // Initialize availability state with default values
-  const initializeAvailability = () => {
-    const defaultAvailability: Availability[] = daysOfWeek.map(day => ({
-      user_id: user.id,
-      day_of_week: day.value,
-      start_time: '09:00',
-      end_time: '17:00',
-    }));
-    setAvailability(defaultAvailability);
-  };
-
   // Fetch existing availability from database
   const fetchAvailability = useCallback(async () => {
     try {
@@ -104,7 +93,13 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
         console.error('Error fetching availability:', error);
         toast.error('Failed to load availability schedule');
         // Initialize with default values if fetch fails
-        initializeAvailability();
+        const defaultAvailability: Availability[] = daysOfWeek.map(day => ({
+          user_id: user.id,
+          day_of_week: day.value,
+          start_time: '09:00',
+          end_time: '17:00',
+        }));
+        setAvailability(defaultAvailability);
         return;
       }
 
@@ -123,16 +118,28 @@ export default function AvailabilityManager({ user }: AvailabilityManagerProps) 
         setAvailability(normalized);
       } else {
         // Initialize with default values if no data exists
-        initializeAvailability();
+        const defaultAvailability: Availability[] = daysOfWeek.map(day => ({
+          user_id: user.id,
+          day_of_week: day.value,
+          start_time: '09:00',
+          end_time: '17:00',
+        }));
+        setAvailability(defaultAvailability);
       }
     } catch (error) {
       console.error('Error fetching availability:', error);
       toast.error('Failed to load availability schedule');
-      initializeAvailability();
+      const defaultAvailability: Availability[] = daysOfWeek.map(day => ({
+        user_id: user.id,
+        day_of_week: day.value,
+        start_time: '09:00',
+        end_time: '17:00',
+      }));
+      setAvailability(defaultAvailability);
     } finally {
       setLoading(false);
     }
-  }, [user.id, supabase]);
+  }, [user.id, supabase, daysOfWeek]);
 
   // Load availability on component mount
   useEffect(() => {
