@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState } from 'react';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import BarberCard from '@/components/BarberCard';
@@ -5,6 +7,25 @@ import Navbar from '@/components/Navbar'
 
 // DiscoverPage Component: Main component that fetches and displays all barbers
 export default async function DiscoverPage() {
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+        }
+      );
+    } else {
+      console.warn('Geolocation is not supported by this browser.');
+    }
+  }, []);
+
   // Create Supabase client for server-side data fetching
   const supabase = createServerComponentClient({ cookies });
 
@@ -146,4 +167,4 @@ export default async function DiscoverPage() {
       </div>
     </main>
   );
-} 
+}

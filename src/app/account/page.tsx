@@ -213,7 +213,7 @@ export default function AccountPage() {
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4 md:px-8 lg:px-12 py-8">
-      <div className={`${role === 'barber' ? 'max-w-md md:max-w-4xl lg:max-w-5xl' : 'max-w-md'} mx-auto`} style={{ padding: "40px 0" }}>
+      <div className={`${role === 'barber' ? 'max-w-md md:max-w-4xl lg:max-w-5xl' : 'max-w-3xl md:max-w-4xl lg:max-w-5xl'} mx-auto`} style={{ padding: "40px 0" }}>
         {/* Header */}
         <div className="text-center" style={{ marginBottom: "60px" }}>
           <Link
@@ -292,7 +292,7 @@ export default function AccountPage() {
             </div>
             <span className="text-gray-400 text-sm">{email}</span>
           </div>
-          <div style={{ marginBottom: "25px" }}>
+          <div className="w-full max-w-4xl mx-auto" style={{ marginBottom: "25px" }}>
             <label
               htmlFor="username"
               className="block text-base font-medium text-gray-300"
