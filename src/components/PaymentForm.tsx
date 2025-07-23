@@ -10,9 +10,8 @@ import {
 } from '@stripe/react-stripe-js';
 
 // Load Stripe outside of component to avoid recreating on every render
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null;
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.replace(/^['"]|['"]$/g, '');
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 
 
@@ -228,8 +227,11 @@ export default function PaymentForm(props: PaymentFormProps) {
   const [clientSecret, setClientSecret] = useState('');
 
   useEffect(() => {
+    // Get the Stripe key and strip quotes if present
+    const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.replace(/^['"]|['"]$/g, '');
+
     // Check if Stripe is configured
-    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    if (!stripeKey) {
       props.onError('Stripe is not configured. Please contact support.');
       return;
     }
@@ -267,7 +269,10 @@ export default function PaymentForm(props: PaymentFormProps) {
       });
   }, [props]);
 
-  if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+  // Get the Stripe key and strip quotes if present
+  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.replace(/^['"]|['"]$/g, '');
+  
+  if (!stripeKey) {
     return (
       <div className="stripe-not-configured">
         <div className="error-icon">⚠️</div>
