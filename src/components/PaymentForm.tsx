@@ -14,6 +14,8 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
+
+
 interface PaymentFormProps {
   amount: number;
   serviceName: string;
@@ -265,7 +267,7 @@ export default function PaymentForm(props: PaymentFormProps) {
       });
   }, [props]);
 
-  if (!stripePromise) {
+  if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
     return (
       <div className="stripe-not-configured">
         <div className="error-icon">⚠️</div>
