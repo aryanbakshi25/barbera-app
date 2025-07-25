@@ -903,7 +903,7 @@ body {
 .profile-address {
   font-weight: 500;
   font-size: 0.9rem;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
@@ -919,8 +919,8 @@ body {
 .profile-services-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 12px;
-  margin-top: 24px;
+  margin-bottom: 8px;
+  margin-top: 15px;
 }
 
 .profile-section-title {
@@ -1017,7 +1017,7 @@ body {
   
   .profile-services-title {
     font-size: 1.2rem;
-    margin-top: 32px;
+    margin-top: 24px;
   }
   
   .profile-section-title {
