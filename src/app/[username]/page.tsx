@@ -57,7 +57,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   // 1. Fetch the main profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, role, bio, location, profile_picture')
+    .select('id, username, role, bio, location, address, profile_picture')
     .eq('username', username)
     .single();
 
@@ -105,11 +105,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18181b' }}>
           <div style={{ background: '#232526', borderRadius: 16, padding: 32, color: '#fff', maxWidth: 500, width: '100%' }}>
             <h1 style={{ fontSize: '2.2rem', fontWeight: 700, marginBottom: 8 }}>@{profile.username}</h1>
-            {profile.location && (
-              <div style={{ color: '#4A90E2', fontWeight: 500, fontSize: '1rem', marginBottom: 16 }}>
-                📍 {profile.location}
+            <div style={{ marginBottom: 24 }}>
+              {profile.location && (
+                <div style={{ color: '#4A90E2', fontWeight: 500, fontSize: '1rem' }}>
+                  📍 {profile.location}
+                </div>
+              )}
+              <div style={{ color: '#aaa', fontSize: '0.95rem' }}>
+                📫 {profile.address || 'no address provided'}
               </div>
-            )}
+            </div>
             {profile.bio && <p style={{ color: '#BDBDBD', marginBottom: 24 }}>{profile.bio}</p>}
             <div style={{ color: '#4A90E2', fontWeight: 600, fontSize: '1.1rem', marginBottom: 24 }}>Community Member</div>
             <EditProfileButton profileId={profile.id} />
@@ -152,6 +157,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             {profile.location && (
               <div className="profile-location">
                 📍 {profile.location}
+              </div>
+            )}
+            {profile.address && (
+              <div className="profile-address" style={{ color: '#aaa' }}>
+                📫 {profile.address}
+              </div>
+            )}
+            {!profile.address && (
+              <div className="profile-address" style={{ color: '#666' }}>
+                📫 no address provided
               </div>
             )}
             {profile.bio && <p className="profile-bio">{profile.bio}</p>}

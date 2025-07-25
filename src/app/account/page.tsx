@@ -37,6 +37,7 @@ export default function AccountPage() {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
+  const [address, setAddress] = useState("");
   const [role, setRole] = useState("customer");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export default function AccountPage() {
       // Fetch profile
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("username, role, profile_picture, bio, location")
+        .select("username, role, profile_picture, bio, location, address")
         .eq("id", user.id)
         .single();
       if (profileError) {
@@ -69,6 +70,7 @@ export default function AccountPage() {
         setUsername(profile.username || "");
         setBio(profile.bio || "");
         setLocation(profile.location || "");
+        setAddress(profile.address || "");
         setRole(profile.role || "customer");
         setProfilePicture(profile.profile_picture || null);
         
@@ -138,7 +140,7 @@ export default function AccountPage() {
     
     const { error } = await supabase
       .from("profiles")
-      .update({ username, role, profile_picture: profilePicture, bio, location })
+      .update({ username, role, profile_picture: profilePicture, bio, location, address })
       .eq("id", user.id);
     if (error) {
       setError("Failed to update profile.");
@@ -335,6 +337,29 @@ export default function AccountPage() {
               disabled={saving}
             />
           </div>
+          {role === "barber" && (
+            <div style={{ marginBottom: "25px" }}>
+              <label
+                htmlFor="address"
+                className="block text-base font-medium text-gray-300"
+                style={{ marginBottom: "10px" }}
+              >
+                Address
+              </label>
+              <input
+                id="address"
+                name="address"
+                type="text"
+                autoComplete="off"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full px-6 py-5 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-colors text-base"
+                placeholder="Enter your full address"
+                style={{ paddingLeft: "1rem", lineHeight: "2.5" }}
+                disabled={saving}
+              />
+            </div>
+          )}
           <div style={{ marginBottom: "50px" }}>
             <label
               className="block text-base font-medium text-gray-300"

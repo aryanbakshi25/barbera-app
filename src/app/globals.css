@@ -896,9 +896,17 @@ body {
   color: #4A90E2;
   font-weight: 500;
   font-size: 0.9rem;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.profile-address {
+  font-weight: 500;
+  font-size: 0.9rem;
   margin-bottom: 16px;
   text-align: center;
 }
+
 
 .profile-bio {
   color: #BDBDBD;
