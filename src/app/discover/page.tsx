@@ -9,29 +9,27 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+interface Barber {
+  id: string;
+  username: string;
+  bio: string | null;
+  location: string | null;
+  profile_picture: string | null;
+  role: string;
+}
+
+interface SupabaseError {
+  message: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+}
+
 // DiscoverPage Component: Main component that fetches and displays all barbers
 export default function DiscoverPage() {
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
-  const [barbers, setBarbers] = useState<any[]>([]);
-  const [error, setError] = useState<any>(null);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [error, setError] = useState<SupabaseError | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatitude(position.coords.latitude);
-          setLongitude(position.coords.longitude);
-        },
-        (error) => {
-          console.warn('Geolocation error:', error);
-        }
-      );
-    } else {
-      console.warn('Geolocation is not supported by this browser.');
-    }
-  }, []);
 
   // Fetch all barbers from the profiles table
   useEffect(() => {
