@@ -53,6 +53,18 @@ export async function POST(request: NextRequest) {
         // Extract metadata
         const { appointmentTime, barberId, customerId, serviceId } = paymentIntent.metadata;
 
+        // Check if appointment already exists (in case client created it already)
+        const { data: existingAppt } = await supabase
+          .from('appointments')
+          .select('id')
+          .eq('payment_intent_id', paymentIntent.id)
+          .single();
+
+        if (existingAppt) {
+          console.log('Appointment already exists for payment:', paymentIntent.id);
+          return NextResponse.json({ received: true, message: 'Appointment already exists' });
+        }
+
         // Create appointment in database
         const { error: insertError } = await supabase
           .from('appointments')
@@ -64,6 +76,7 @@ export async function POST(request: NextRequest) {
               appointment_time: appointmentTime,
               payment_intent_id: paymentIntent.id,
               payment_status: 'paid',
+              status: 'scheduled',
             },
           ]);
 
@@ -75,7 +88,12 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        console.log('Appointment created successfully for payment:', paymentIntent.id);
+        console.log('✅ Appointment created successfully!');
+        console.log('   Payment Intent ID:', paymentIntent.id);
+        console.log('   Barber ID:', barberId);
+        console.log('   Customer ID:', customerId);
+        console.log('   Service ID:', serviceId);
+        console.log('   Appointment Time:', appointmentTime);
       } catch (error) {
         console.error('Error processing payment success:', error);
         return NextResponse.json(
