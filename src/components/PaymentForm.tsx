@@ -8,8 +8,6 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { createBrowserClient } from '@supabase/ssr';
-
 // Load Stripe outside of component to avoid recreating on every render
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.replace(/^['"]|['"]$/g, '');
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
@@ -27,11 +25,6 @@ interface PaymentFormProps {
   onError: (error: string) => void;
   onCancel: () => void;
 }
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 function CheckoutForm({
   amount,
@@ -91,27 +84,29 @@ function CheckoutForm({
           console.log('Payment succeeded, creating appointment...');
           
           try {
-            // Create appointment directly (webhook is backup but may not fire immediately)
-            const { error: insertError } = await supabase
-              .from('appointments')
-              .insert([
-                {
-                  barber_id: barberId,
-                  customer_id: customerId,
-                  service_id: serviceId,
-                  appointment_time: appointmentTime,
-                  payment_intent_id: paymentIntent.id,
-                  payment_status: 'paid',
-                  status: 'scheduled',
-                },
-              ]);
+            // Create appointment via API route (uses service role key, bypasses RLS)
+            const response = await fetch('/api/create-appointment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                barber_id: barberId,
+                customer_id: customerId,
+                service_id: serviceId,
+                appointment_time: appointmentTime,
+                payment_intent_id: paymentIntent.id,
+              }),
+            });
 
-            if (insertError) {
-              console.error('Error creating appointment:', insertError);
+            const result = await response.json();
+
+            if (!response.ok || result.error) {
+              console.error('Error creating appointment:', result.error || result);
               // Still show success to user, webhook will handle it
               console.log('Appointment creation failed, webhook will handle it');
             } else {
-              console.log('✅ Appointment created successfully!');
+              console.log('✅ Appointment created successfully!', result.appointment?.id);
             }
           } catch (err) {
             console.error('Error creating appointment:', err);
