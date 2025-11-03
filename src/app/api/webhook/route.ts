@@ -96,36 +96,6 @@ export async function POST(request: NextRequest) {
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object as Stripe.Checkout.Session;
-      
-      try {
-        // Extract metadata from checkout session
-        const { appointmentTime, barberId, customerId, serviceId } = session.metadata || {};
-
-        if (!appointmentTime || !barberId || !customerId || !serviceId) {
-          console.error('Missing metadata in checkout session:', session.id);
-          return NextResponse.json(
-            { error: 'Missing appointment details' },
-            { status: 400 }
-          );
-        }
-
-        // Get payment intent ID from session
-        const paymentIntentId = typeof session.payment_intent === 'string' 
-          ? session.payment_intent 
-          : session.payment_intent?.id || '';
-
-        await createAppointment(barberId, customerId, serviceId, appointmentTime, paymentIntentId);
-      } catch (error) {
-        console.error('Error processing checkout completion:', error);
-        return NextResponse.json(
-          { error: 'Failed to process checkout' },
-          { status: 500 }
-        );
-      }
-      break;
-
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       
@@ -134,8 +104,8 @@ export async function POST(request: NextRequest) {
         const { appointmentTime, barberId, customerId, serviceId } = paymentIntent.metadata || {};
 
         if (!appointmentTime || !barberId || !customerId || !serviceId) {
-          // Skip if metadata is missing (might be from checkout session)
-          console.log('Payment intent succeeded but missing metadata, may be handled by checkout.session.completed');
+          // Skip if metadata is missing
+          console.log('Payment intent succeeded but missing metadata');
           break;
         }
 

@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { DayPicker } from 'react-day-picker';
 import { format, addMinutes, isBefore, isAfter, isEqual, parseISO, setHours, setMinutes, startOfDay, addDays } from 'date-fns';
 import 'react-day-picker/dist/style.css';
-import StripeCheckoutButton from './StripeCheckoutButton';
+import PaymentForm from './PaymentForm';
 
 interface Service {
   id: string;
@@ -316,13 +316,14 @@ export default function BookingModal({ barberId, services, customerId, onClose }
           <div>
             <button className="close-btn" onClick={onClose} title="Close">&times;</button>
             <h3>Complete Payment</h3>
-            <StripeCheckoutButton
+            <PaymentForm
               amount={selectedService.price}
               serviceName={selectedService.name}
               appointmentTime={selectedTime.toISOString()}
               barberId={barberId}
               customerId={customerId}
               serviceId={selectedService.id}
+              onSuccess={() => setStep('confirm')}
               onError={(error) => {
                 setError(error);
                 setStep('time');
