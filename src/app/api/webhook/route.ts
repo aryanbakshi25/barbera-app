@@ -44,56 +44,102 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
+  // Helper function to create appointment
+  const createAppointment = async (
+    barberId: string,
+    customerId: string,
+    serviceId: string,
+    appointmentTime: string,
+    paymentIntentId: string
+  ) => {
+    // Check if appointment already exists
+    const { data: existingAppt } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('payment_intent_id', paymentIntentId)
+      .single();
+
+    if (existingAppt) {
+      console.log('Appointment already exists for payment:', paymentIntentId);
+      return { exists: true };
+    }
+
+    // Create appointment in database
+    const { error: insertError } = await supabase
+      .from('appointments')
+      .insert([
+        {
+          barber_id: barberId,
+          customer_id: customerId,
+          service_id: serviceId,
+          appointment_time: appointmentTime,
+          payment_intent_id: paymentIntentId,
+          payment_status: 'paid',
+          status: 'scheduled',
+        },
+      ]);
+
+    if (insertError) {
+      console.error('Error creating appointment:', insertError);
+      throw insertError;
+    }
+
+    console.log('✅ Appointment created successfully!');
+    console.log('   Payment Intent ID:', paymentIntentId);
+    console.log('   Barber ID:', barberId);
+    console.log('   Customer ID:', customerId);
+    console.log('   Service ID:', serviceId);
+    console.log('   Appointment Time:', appointmentTime);
+    
+    return { success: true };
+  };
+
   // Handle the event
   switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object as Stripe.Checkout.Session;
+      
+      try {
+        // Extract metadata from checkout session
+        const { appointmentTime, barberId, customerId, serviceId } = session.metadata || {};
+
+        if (!appointmentTime || !barberId || !customerId || !serviceId) {
+          console.error('Missing metadata in checkout session:', session.id);
+          return NextResponse.json(
+            { error: 'Missing appointment details' },
+            { status: 400 }
+          );
+        }
+
+        // Get payment intent ID from session
+        const paymentIntentId = typeof session.payment_intent === 'string' 
+          ? session.payment_intent 
+          : session.payment_intent?.id || '';
+
+        await createAppointment(barberId, customerId, serviceId, appointmentTime, paymentIntentId);
+      } catch (error) {
+        console.error('Error processing checkout completion:', error);
+        return NextResponse.json(
+          { error: 'Failed to process checkout' },
+          { status: 500 }
+        );
+      }
+      break;
+
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       
       try {
         // Extract metadata
-        const { appointmentTime, barberId, customerId, serviceId } = paymentIntent.metadata;
+        const { appointmentTime, barberId, customerId, serviceId } = paymentIntent.metadata || {};
 
-        // Check if appointment already exists (in case client created it already)
-        const { data: existingAppt } = await supabase
-          .from('appointments')
-          .select('id')
-          .eq('payment_intent_id', paymentIntent.id)
-          .single();
-
-        if (existingAppt) {
-          console.log('Appointment already exists for payment:', paymentIntent.id);
-          return NextResponse.json({ received: true, message: 'Appointment already exists' });
+        if (!appointmentTime || !barberId || !customerId || !serviceId) {
+          // Skip if metadata is missing (might be from checkout session)
+          console.log('Payment intent succeeded but missing metadata, may be handled by checkout.session.completed');
+          break;
         }
 
-        // Create appointment in database
-        const { error: insertError } = await supabase
-          .from('appointments')
-          .insert([
-            {
-              barber_id: barberId,
-              customer_id: customerId,
-              service_id: serviceId,
-              appointment_time: appointmentTime,
-              payment_intent_id: paymentIntent.id,
-              payment_status: 'paid',
-              status: 'scheduled',
-            },
-          ]);
-
-        if (insertError) {
-          console.error('Error creating appointment:', insertError);
-          return NextResponse.json(
-            { error: 'Failed to create appointment' },
-            { status: 500 }
-          );
-        }
-
-        console.log('✅ Appointment created successfully!');
-        console.log('   Payment Intent ID:', paymentIntent.id);
-        console.log('   Barber ID:', barberId);
-        console.log('   Customer ID:', customerId);
-        console.log('   Service ID:', serviceId);
-        console.log('   Appointment Time:', appointmentTime);
+        await createAppointment(barberId, customerId, serviceId, appointmentTime, paymentIntent.id);
       } catch (error) {
         console.error('Error processing payment success:', error);
         return NextResponse.json(
