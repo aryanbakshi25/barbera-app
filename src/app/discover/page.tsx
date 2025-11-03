@@ -1,14 +1,21 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createBrowserClient } from '@supabase/ssr';
 import BarberCard from '@/components/BarberCard';
 import Navbar from '@/components/Navbar'
 
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 // DiscoverPage Component: Main component that fetches and displays all barbers
-export default async function DiscoverPage() {
+export default function DiscoverPage() {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const [barbers, setBarbers] = useState<any[]>([]);
+  const [error, setError] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -26,15 +33,26 @@ export default async function DiscoverPage() {
     }
   }, []);
 
-  // Create Supabase client for server-side data fetching
-  const supabase = createServerComponentClient({ cookies });
-
   // Fetch all barbers from the profiles table
-  const { data: barbers, error } = await supabase
-    .from('profiles')
-    .select('id, username, bio, location, profile_picture, role')
-    .eq('role', 'barber')
-    .order('username', { ascending: true });
+  useEffect(() => {
+    const fetchBarbers = async () => {
+      setLoading(true);
+      const { data, error: fetchError } = await supabase
+        .from('profiles')
+        .select('id, username, bio, location, profile_picture, role')
+        .eq('role', 'barber')
+        .order('username', { ascending: true });
+      
+      if (fetchError) {
+        setError(fetchError);
+      } else {
+        setBarbers(data || []);
+      }
+      setLoading(false);
+    };
+
+    fetchBarbers();
+  }, []);
 
   // Handle potential database errors
   if (error) {
@@ -67,6 +85,29 @@ export default async function DiscoverPage() {
             <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Something went wrong</h1>
             <p style={{ color: '#BDBDBD', marginBottom: '1rem' }}>Unable to load barbers at this time. Please try again later.</p>
             <p style={{ color: '#666', fontSize: '0.8rem' }}>Error: {error.message}</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (loading) {
+    return (
+      <main>
+        <Navbar />
+        <div style={{ 
+          minHeight: '100vh', 
+          background: '#18181b', 
+          padding: '40px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            color: '#fff',
+            textAlign: 'center',
+          }}>
+            <p>Loading barbers...</p>
           </div>
         </div>
       </main>
