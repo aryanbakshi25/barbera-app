@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ServicesManager from "@/components/ServicesManager";
 import AvailabilityManager from "@/components/AvailabilityManager";
+import StripeOnboardingButton from "@/components/StripeOnboardingButton";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,6 +42,7 @@ export default function AccountPage() {
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,7 +62,7 @@ export default function AccountPage() {
       // Fetch profile
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("username, role, profile_picture, bio, location")
+        .select("username, role, profile_picture, bio, location, stripe_account_id")
         .eq("id", user.id)
         .single();
       if (profileError) {
@@ -71,6 +73,7 @@ export default function AccountPage() {
         setLocation(profile.location || "");
         setRole(profile.role || "customer");
         setProfilePicture(profile.profile_picture || null);
+        setStripeAccountId(profile.stripe_account_id || null);
         
         // If user is a barber, fetch their services
         if (profile.role === 'barber') {
@@ -410,6 +413,170 @@ export default function AccountPage() {
         {/* Availability Management for Barbers */}
         {role === 'barber' && user && (
           <AvailabilityManager user={user} />
+        )}
+        
+        {/* Stripe Connect Onboarding for Barbers */}
+        {role === 'barber' && user && (
+          <div className="mt-8 mb-8">
+            <div style={{ marginBottom: '25px' }}>
+              <div className="flex items-center justify-between mb-4">
+                <label className="block text-base font-medium text-gray-300">
+                  Payment Setup
+                </label>
+                {/* Status Indicator */}
+                {stripeAccountId ? (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    background: 'rgba(34, 197, 94, 0.1)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                  }}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2.5}
+                      stroke="currentColor"
+                      style={{ width: '1.25rem', height: '1.25rem', color: '#22c55e' }}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span style={{ color: '#22c55e', fontSize: '0.875rem', fontWeight: 500 }}>Completed</span>
+                  </div>
+                ) : (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                  }}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2.5}
+                      stroke="currentColor"
+                      style={{ width: '1.25rem', height: '1.25rem', color: '#ef4444' }}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                      />
+                    </svg>
+                    <span style={{ color: '#ef4444', fontSize: '0.875rem', fontWeight: 600 }}>REQUIRED</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Required Warning Box */}
+              {!stripeAccountId && (
+                <div style={{
+                  marginTop: '1.5rem',
+                  padding: '1rem',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  borderRadius: '8px',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  paddingBottom: '2rem',
+                }}>
+                  <div className="flex items-start gap-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-red-300 font-semibold text-base" style={{ marginBottom: '0.5rem' }}>
+                        Payment Setup Required
+                      </p>
+                      <p className="text-red-200/90 text-sm">
+                        You <strong>must</strong> complete Stripe onboarding to receive payouts from appointments. 
+                        Without this setup, you will not be able to accept payments or receive earnings.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {stripeAccountId && (
+                <div style={{
+                  marginTop: '1.5rem',
+                  padding: '1rem',
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(34, 197, 94, 0.2)',
+                  paddingBottom: '2rem',
+                }}>
+                  <div className="flex items-start gap-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-green-300 font-semibold text-base" style={{ marginBottom: '0.5rem' }}>
+                        Payment Setup Complete
+                      </p>
+                      <p className="text-green-200/90 text-sm">
+                        Your Stripe account is connected. You can now receive payouts from appointments. 
+                        Click the button below to update your account details if needed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Instructions Box */}
+              <div style={{
+                marginTop: '1.5rem',
+                padding: '1rem',
+                background: 'rgba(59, 130, 246, 0.1)',
+                borderRadius: '8px',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                paddingBottom: '2rem',
+              }}>
+                <p className="text-blue-300 text-sm font-medium" style={{ marginBottom: '0.5rem' }}>What to expect:</p>
+                <ul className="text-gray-400 text-sm space-y-1 list-disc list-inside">
+                  <li>You&apos;ll be redirected to Stripe&apos;s secure onboarding page</li>
+                  <li>Fill in your business information and personal details</li>
+                  <li>When asked for bank account setup, select <strong className="text-gray-300">&quot;Bank account (no OAuth)&quot;</strong> or <strong className="text-gray-300">&quot;Enter bank details directly&quot;</strong></li>
+                  <li>Complete all required fields to finish setup</li>
+                </ul>
+              </div>
+              
+              <div style={{ marginTop: '1.5rem' }}>
+                <StripeOnboardingButton hasAccount={!!stripeAccountId} />
+              </div>
+            </div>
+          </div>
         )}
         
         {/* Save Changes Button */}
