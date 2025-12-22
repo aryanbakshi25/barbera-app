@@ -344,6 +344,8 @@ export default function PaymentForm(props: PaymentFormProps) {
         if (!res.ok) {
           // Extract error message from response
           const errorMessage = data.error || data.details || `HTTP error! status: ${res.status}`;
+          const errorCode = data.code || '';
+          console.error('Payment intent creation failed:', { error: errorMessage, code: errorCode, status: res.status });
           throw new Error(errorMessage);
         }
         if (data.error) {
@@ -355,8 +357,10 @@ export default function PaymentForm(props: PaymentFormProps) {
         console.error('Error creating payment intent:', error);
         // Check if it's a barber onboarding error
         const errorMsg = error.message || '';
-        if (errorMsg.includes('payment setup') || errorMsg.includes('not completed')) {
+        if (errorMsg.includes('payment setup') || errorMsg.includes('not completed') || errorMsg.includes('not fully set up')) {
           props.onError('This barber has not completed their payment setup. Please contact them or try another barber.');
+        } else if (errorMsg.includes('invalid') || errorMsg.includes('not found')) {
+          props.onError('This barber\'s payment account is not set up correctly. Please contact support.');
         } else {
           props.onError('Failed to initialize payment: ' + errorMsg);
         }
