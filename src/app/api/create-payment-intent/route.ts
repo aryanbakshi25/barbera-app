@@ -109,14 +109,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         clientSecret: paymentIntent.client_secret,
       });
-    } catch (stripeError: any) {
+    } catch (stripeError) {
       console.error('Stripe API error creating payment intent:', stripeError);
-      console.error('Error type:', stripeError.type);
-      console.error('Error code:', stripeError.code);
-      console.error('Error message:', stripeError.message);
+      const error = stripeError as Stripe.errors.StripeError;
+      console.error('Error type:', error.type);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
       
       // Return more specific error messages
-      if (stripeError.code === 'account_invalid') {
+      if (error.code === 'account_invalid') {
         return NextResponse.json(
           { error: 'Barber\'s Stripe account is invalid. Please contact support.' },
           { status: 400 }
@@ -126,8 +127,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Failed to create payment intent', 
-          details: stripeError.message || 'Unknown Stripe error',
-          code: stripeError.code || 'unknown'
+          details: error.message || 'Unknown Stripe error',
+          code: error.code || 'unknown'
         },
         { status: 500 }
       );
