@@ -545,9 +545,36 @@ export default function AccountPage() {
                       <p className="text-green-300 font-semibold text-base" style={{ marginBottom: '0.5rem' }}>
                         Payment Setup Complete
                       </p>
-                      <p className="text-green-200/90 text-sm">
-                        Your Stripe account is connected. You can now receive payouts from appointments. 
-                        Click the button below to update your account details if needed.
+                      <p className="text-green-200/90 text-sm" style={{ marginBottom: '0.75rem' }}>
+                        Your Stripe account is connected. You can now receive payouts from appointments.
+                      </p>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/stripe-connect/dashboard', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                            });
+                            const data = await response.json();
+                            if (data.url) {
+                              window.location.href = data.url;
+                            } else {
+                              alert('Failed to access dashboard. Please try again.');
+                            }
+                          } catch (error) {
+                            console.error('Error accessing dashboard:', error);
+                            alert('Failed to access dashboard. Please try again.');
+                          }
+                        }}
+                        className="text-green-400 hover:text-green-300 text-sm font-medium underline"
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        View Stripe Dashboard →
+                      </button>
+                      <p className="text-green-200/70 text-xs" style={{ marginTop: '0.5rem' }}>
+                        Access your earnings, payout schedule, and account settings
                       </p>
                     </div>
                   </div>
@@ -564,12 +591,20 @@ export default function AccountPage() {
                 paddingBottom: '2rem',
               }}>
                 <p className="text-blue-300 text-sm font-medium" style={{ marginBottom: '0.5rem' }}>What to expect:</p>
-                <ul className="text-gray-400 text-sm space-y-1 list-disc list-inside">
+                <ul className="text-gray-400 text-sm space-y-1 list-disc list-inside" style={{ marginBottom: '1rem' }}>
                   <li>You&apos;ll be redirected to Stripe&apos;s secure onboarding page</li>
                   <li>Fill in your business information and personal details</li>
                   <li>When asked for bank account setup, select <strong className="text-gray-300">&quot;Bank account (no OAuth)&quot;</strong> or <strong className="text-gray-300">&quot;Enter bank details directly&quot;</strong></li>
                   <li>Complete all required fields to finish setup</li>
                 </ul>
+                {stripeAccountId && (
+                  <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                    <p className="text-blue-300 text-sm font-medium" style={{ marginBottom: '0.5rem' }}>Access Your Dashboard:</p>
+                    <p className="text-gray-400 text-sm">
+                      After completing setup, you can view your earnings, payout schedule, and manage your account by clicking &quot;View Stripe Dashboard&quot; above, or by accessing it anytime from this page.
+                    </p>
+                  </div>
+                )}
               </div>
               
               <div style={{ marginTop: '1.5rem' }}>

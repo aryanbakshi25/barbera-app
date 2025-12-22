@@ -339,13 +339,13 @@ export default function PaymentForm(props: PaymentFormProps) {
         serviceId: props.serviceId,
       }),
     })
-      .then((res) => {
+      .then(async (res) => {
+        const data = await res.json();
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          // Extract error message from response
+          const errorMessage = data.error || data.details || `HTTP error! status: ${res.status}`;
+          throw new Error(errorMessage);
         }
-        return res.json();
-      })
-      .then((data) => {
         if (data.error) {
           throw new Error(data.error);
         }
@@ -353,7 +353,13 @@ export default function PaymentForm(props: PaymentFormProps) {
       })
       .catch((error) => {
         console.error('Error creating payment intent:', error);
-        props.onError('Failed to initialize payment: ' + error.message);
+        // Check if it's a barber onboarding error
+        const errorMsg = error.message || '';
+        if (errorMsg.includes('payment setup') || errorMsg.includes('not completed')) {
+          props.onError('This barber has not completed their payment setup. Please contact them or try another barber.');
+        } else {
+          props.onError('Failed to initialize payment: ' + errorMsg);
+        }
       });
   }, [props]);
 
