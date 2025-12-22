@@ -69,6 +69,10 @@ function CheckoutForm({
       });
 
       if (error) {
+        console.error('Stripe payment confirmation error:', error);
+        console.error('Error type:', error.type);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
         setMessage(error.message || 'An error occurred during payment.');
         onError(error.message || 'Payment failed');
         setIsProcessing(false);

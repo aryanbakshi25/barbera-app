@@ -97,7 +97,6 @@ export async function POST(request: NextRequest) {
         amount: totalAmount,
         currency: 'usd',
         application_fee_amount: applicationFeeAmount, // Platform's cut
-        on_behalf_of: barberProfile.stripe_account_id, // Barber's Stripe account
         transfer_data: {
           destination: barberProfile.stripe_account_id, // Funds go to barber
         },
