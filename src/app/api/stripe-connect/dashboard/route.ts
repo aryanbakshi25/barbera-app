@@ -81,20 +81,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate Stripe Account Link for dashboard access
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || request.headers.get('origin') || 'http://localhost:3000';
-
+    // Generate Stripe Login Link for direct dashboard access
     try {
-      const accountLink = await stripe.accountLinks.create({
-        account: profile.stripe_account_id,
-        refresh_url: `${baseUrl}/account`,
-        return_url: `${baseUrl}/account`,
-        type: 'account_onboarding', // This allows access to dashboard
-      });
+      const loginLink = await stripe.accounts.createLoginLink(profile.stripe_account_id);
 
-      return NextResponse.json({ url: accountLink.url });
+      return NextResponse.json({ url: loginLink.url });
     } catch (linkError) {
-      console.error('Error creating account link:', linkError);
+      console.error('Error creating login link:', linkError);
       return NextResponse.json(
         { error: 'Failed to create dashboard link' },
         { status: 500 }
