@@ -43,6 +43,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if appointment already exists (prevent duplicates)
+    const { data: existingAppt } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('payment_intent_id', payment_intent_id)
+      .single();
+
+    if (existingAppt) {
+      console.log('Appointment already exists for payment:', payment_intent_id);
+      return NextResponse.json({ 
+        success: true, 
+        appointment: existingAppt,
+        message: 'Appointment already exists'
+      });
+    }
+
     // Create appointment in database
     const { data, error: insertError } = await supabase
       .from('appointments')
