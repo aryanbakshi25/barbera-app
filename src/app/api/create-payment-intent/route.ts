@@ -57,16 +57,31 @@ export async function POST(request: NextRequest) {
     // Verify barber's Stripe account is active
     try {
       const account = await stripe.accounts.retrieve(barberProfile.stripe_account_id);
+      console.log('Barber Stripe account status:', {
+        id: account.id,
+        details_submitted: account.details_submitted,
+        charges_enabled: account.charges_enabled,
+        payouts_enabled: account.payouts_enabled,
+      });
+      
       if (account.details_submitted === false) {
         return NextResponse.json(
           { error: 'Barber\'s Stripe account is not fully set up. Please complete payment setup.' },
           { status: 400 }
         );
       }
+      
+      if (account.charges_enabled === false) {
+        return NextResponse.json(
+          { error: 'Barber\'s Stripe account cannot accept charges yet. Please complete payment setup.' },
+          { status: 400 }
+        );
+      }
     } catch (accountError) {
       console.error('Error retrieving Stripe account:', accountError);
+      const errorMsg = accountError instanceof Error ? accountError.message : String(accountError);
       return NextResponse.json(
-        { error: 'Barber\'s Stripe account is invalid or not found.' },
+        { error: 'Barber\'s Stripe account is invalid or not found: ' + errorMsg },
         { status: 400 }
       );
     }
@@ -111,24 +126,40 @@ export async function POST(request: NextRequest) {
       });
     } catch (stripeError) {
       console.error('Stripe API error creating payment intent:', stripeError);
-      const error = stripeError as Stripe.errors.StripeError;
-      console.error('Error type:', error.type);
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
       
-      // Return more specific error messages
-      if (error.code === 'account_invalid') {
+      // Check if it's a Stripe error
+      if (stripeError && typeof stripeError === 'object' && 'type' in stripeError) {
+        const error = stripeError as Stripe.errors.StripeError;
+        console.error('Error type:', error.type);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        // Return more specific error messages
+        if (error.code === 'account_invalid') {
+          return NextResponse.json(
+            { error: 'Barber\'s Stripe account is invalid. Please contact support.' },
+            { status: 400 }
+          );
+        }
+        
         return NextResponse.json(
-          { error: 'Barber\'s Stripe account is invalid. Please contact support.' },
-          { status: 400 }
+          { 
+            error: 'Failed to create payment intent', 
+            details: error.message || 'Unknown Stripe error',
+            code: error.code || 'unknown'
+          },
+          { status: 500 }
         );
       }
       
+      // If it's not a Stripe error, return generic error
+      const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError);
+      console.error('Non-Stripe error:', errorMessage);
       return NextResponse.json(
         { 
           error: 'Failed to create payment intent', 
-          details: error.message || 'Unknown Stripe error',
-          code: error.code || 'unknown'
+          details: errorMessage,
+          code: 'unknown'
         },
         { status: 500 }
       );
