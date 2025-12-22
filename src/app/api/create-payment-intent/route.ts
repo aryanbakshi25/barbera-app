@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
         transfer_data: {
           destination: barberProfile.stripe_account_id, // Funds go to barber
         },
+        payment_method_types: ['card'], // Explicitly specify card payment method for Connect
         metadata: {
           serviceName,
           appointmentTime,
@@ -109,9 +110,6 @@ export async function POST(request: NextRequest) {
           serviceId,
           platformFeePercent: platformFeePercent.toString(),
           applicationFeeAmount: applicationFeeAmount.toString(),
-        },
-        automatic_payment_methods: {
-          enabled: true,
         },
       });
 
