@@ -17,12 +17,28 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY // Use service role to bypass RLS
     );
 
-    const { barber_id, customer_id, service_id, appointment_time, payment_intent_id } = await request.json();
+    const body = await request.json();
+    const { barber_id, customer_id, service_id, appointment_time, payment_intent_id } = body;
+
+    console.log('Creating appointment with data:', {
+      barber_id,
+      customer_id,
+      service_id,
+      appointment_time,
+      payment_intent_id,
+    });
 
     // Validate required fields
     if (!barber_id || !customer_id || !service_id || !appointment_time || !payment_intent_id) {
+      console.error('Missing required fields:', {
+        barber_id: !!barber_id,
+        customer_id: !!customer_id,
+        service_id: !!service_id,
+        appointment_time: !!appointment_time,
+        payment_intent_id: !!payment_intent_id,
+      });
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields', received: body },
         { status: 400 }
       );
     }
@@ -46,8 +62,11 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Error creating appointment:', insertError);
+      console.error('Error code:', insertError.code);
+      console.error('Error details:', insertError.details);
+      console.error('Error hint:', insertError.hint);
       return NextResponse.json(
-        { error: 'Failed to create appointment', details: insertError.message },
+        { error: 'Failed to create appointment', details: insertError.message, code: insertError.code },
         { status: 500 }
       );
     }
